@@ -25,7 +25,6 @@ namespace Vostok.ZooKeeper.Client.Tests
             log = new ConsoleLog();
             ensemble = ZooKeeperEnsemble.DeployNew(1, log);
             instance = ensemble.Instances.Single();
-            Thread.Sleep(20.Seconds());
         }
 
         [TearDown]
