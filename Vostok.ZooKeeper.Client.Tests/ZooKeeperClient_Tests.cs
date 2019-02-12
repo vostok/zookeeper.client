@@ -33,8 +33,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [TestCase("/root")]
-        [TestCase("/a/b/c1")]
-        [TestCase("/a/b/c2")]
+        //[TestCase("/a/b/c1")]
+        //[TestCase("/a/b/c2")]
         public async Task Create_persistent_node_should_work_with_different_pathes(string path)
         {
             var client = Client();
