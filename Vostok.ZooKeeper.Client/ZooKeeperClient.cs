@@ -86,6 +86,7 @@ namespace Vostok.ZooKeeper.Client
         public void Dispose()
         {
             log.Debug($"Disposing client.");
+            client.closeAsync().Wait();
         }
     }
 }
