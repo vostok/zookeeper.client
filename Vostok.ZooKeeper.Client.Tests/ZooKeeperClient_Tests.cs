@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -24,6 +25,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             log = new ConsoleLog();
             ensemble = ZooKeeperEnsemble.DeployNew(1, log);
             instance = ensemble.Instances.Single();
+            Thread.Sleep(20.Seconds());
         }
 
         [TearDown]
