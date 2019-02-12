@@ -338,7 +338,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private ZooKeeperClient Client()
         {
-            return new ZooKeeperClient(ensemble.ConnectionString, 10.Seconds());
+            return new ZooKeeperClient(log, ensemble.ConnectionString, 10.Seconds());
         }
     }
 }
