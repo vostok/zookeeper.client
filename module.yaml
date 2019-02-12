@@ -15,6 +15,7 @@ notests *default:
 
 full-build > notests:
   deps:
+    - vostok.logging.console
     - vostok.zookeeper.localensemble
   build:
     target: Vostok.ZooKeeper.Client.sln

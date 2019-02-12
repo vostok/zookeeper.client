@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using org.apache.zookeeper;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
@@ -11,7 +12,18 @@ namespace Vostok.ZooKeeper.Client
     [PublicAPI]
     public class ZooKeeperClient : IZooKeeperClient
     {
-        public Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request) => throw new NotImplementedException();
+        private org.apache.zookeeper.ZooKeeper client;
+
+        public ZooKeeperClient(string connectionString, TimeSpan timeOut)
+        {
+            client = new org.apache.zookeeper.ZooKeeper(connectionString, (int)timeOut.TotalMilliseconds, null);
+        }
+
+        public async Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request)
+        {
+            var newPath = await client.createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode());
+            return new CreateZooKeeperResult(ZooKeeperStatus.Ok, newPath, newPath);
+        }
 
         public Task<DeleteZooKeeperResult> DeleteAsync(DeleteZooKeeperRequest request) => throw new NotImplementedException();
 
@@ -23,7 +35,11 @@ namespace Vostok.ZooKeeper.Client
 
         public Task<GetChildrenWithStatZooKeeperResult> GetChildrenWithStatAsync(GetChildrenZooKeeperRequest request) => throw new NotImplementedException();
 
-        public Task<GetDataZooKeeperResult> GetDataAsync(GetDataZooKeeperRequest request) => throw new NotImplementedException();
+        public async Task<GetDataZooKeeperResult> GetDataAsync(GetDataZooKeeperRequest request)
+        {
+            var data = await client.getDataAsync(request.Path);
+            return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
+        }
 
         public IObservable<ConnectionState> OnConnectionStateChanged { get; }
 
