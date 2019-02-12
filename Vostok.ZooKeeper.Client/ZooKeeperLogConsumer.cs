@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using org.apache.utils;
 using Vostok.Logging.Abstractions;
+using Vostok.Logging.Context;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -11,29 +12,32 @@ namespace Vostok.ZooKeeper.Client
 
         public ZooKeeperLogConsumer(ILog log)
         {
-            this.log = log;
+            this.log = log.WithContextualPrefix();
         }
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            switch (severity)
+            using (new ContextualLogPrefix(className))
             {
-                case TraceLevel.Error:
-                    log.ForContext(className).Error(exception, message);
-                    break;
-                case TraceLevel.Info:
-                    log.ForContext(className).Info(exception, message);
-                    break;
-                case TraceLevel.Off:
-                    break;
-                case TraceLevel.Verbose:
-                    log.ForContext(className).Debug(exception, message);
-                    break;
-                case TraceLevel.Warning:
-                    log.ForContext(className).Warn(exception, message);
-                    break;
-                default:
-                    break;
+                switch (severity)
+                {
+                    case TraceLevel.Error:
+                        log.Error(exception, message);
+                        break;
+                    case TraceLevel.Info:
+                        log.Info(exception, message);
+                        break;
+                    case TraceLevel.Off:
+                        break;
+                    case TraceLevel.Verbose:
+                        log.Debug(exception, message);
+                        break;
+                    case TraceLevel.Warning:
+                        log.Warn(exception, message);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }

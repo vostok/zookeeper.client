@@ -32,18 +32,24 @@ namespace Vostok.ZooKeeper.Client.Tests
             ensemble.Dispose();
         }
 
+        
+
         [TestCase("/root")]
         //[TestCase("/a/b/c1")]
         //[TestCase("/a/b/c2")]
         public async Task Create_persistent_node_should_work_with_different_pathes(string path)
         {
-            var client = Client();
-            await client.CreateAsync(new CreateZooKeeperRequest(path, null, CreateMode.Persistent));
-            var node = await client.GetDataAsync(new GetDataZooKeeperRequest(path));
+            using (var client = Client())
+            {
+                await client.CreateAsync(new CreateZooKeeperRequest(path, null, CreateMode.Persistent));
+                var node = await client.GetDataAsync(new GetDataZooKeeperRequest(path));
 
-            node.Path.Should().Be(path);
-            node.Stat.Version.Should().Be(0);
+                node.Path.Should().Be(path);
+                node.Stat.Version.Should().Be(0);
+            }
         }
+
+
 
         //[Test]
         //public void IsStarted_should_be_false_by_default()

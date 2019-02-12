@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using org.apache.zookeeper;
@@ -21,9 +22,11 @@ namespace Vostok.ZooKeeper.Client
 
         public ZooKeeperClient(ILog log, string connectionString, TimeSpan timeOut)
         {
-            this.log = log.ForContext<ZooKeeperClient>();
+            log = log.ForContext<ZooKeeperClient>();
+            this.log = log;
 
             org.apache.zookeeper.ZooKeeper.CustomLogConsumer = new ZooKeeperLogConsumer(log);
+            org.apache.zookeeper.ZooKeeper.LogLevel = TraceLevel.Verbose;
             org.apache.zookeeper.ZooKeeper.LogToFile = false;
             org.apache.zookeeper.ZooKeeper.LogToTrace = false;
 
@@ -78,7 +81,7 @@ namespace Vostok.ZooKeeper.Client
 
         public bool IsConnected { get; }
 
-        public long SessionId { get; }
+        public long SessionId => client.getSessionId();
 
         public void Dispose()
         {
