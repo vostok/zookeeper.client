@@ -1,0 +1,17 @@
+notests *default:
+  build:
+    target: Vostok.ZooKeeper.Client.sln
+    configuration: NoTests
+    tool:
+      name: dotnet
+
+  install:
+    - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
+
+  deps:
+    - vostok.devtools
+
+full-build > notests:
+  build:
+    target: Vostok.ZooKeeper.Client.sln
+    configuration: Release
