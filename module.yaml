@@ -9,9 +9,13 @@ notests *default:
     - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
 
   deps:
+    - vostok.logging.abstractions
+    - vostok.zookeeper.client.abstractions
     - vostok.devtools
 
 full-build > notests:
+  deps:
+    - vostok.zookeeper.localensemble
   build:
     target: Vostok.ZooKeeper.Client.sln
     configuration: Release
