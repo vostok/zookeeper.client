@@ -30,9 +30,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void TearDown()
         {
             ensemble.Dispose();
+            ConsoleLog.Flush();
         }
-
-        
 
         [TestCase("/root")]
         //[TestCase("/a/b/c1")]
