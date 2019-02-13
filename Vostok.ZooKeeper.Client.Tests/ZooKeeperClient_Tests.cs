@@ -22,7 +22,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void SetUp()
         {
             log = new ConsoleLog();
-            ensemble = ZooKeeperEnsemble.DeployNew(3, log);
+            ensemble = ZooKeeperEnsemble.DeployNew(1, log);
         }
 
         [TearDown]
