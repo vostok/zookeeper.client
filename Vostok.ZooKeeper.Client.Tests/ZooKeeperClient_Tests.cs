@@ -17,14 +17,12 @@ namespace Vostok.ZooKeeper.Client.Tests
     {
         private ILog log;
         private ZooKeeperEnsemble ensemble;
-        private ZooKeeperInstance instance;
-
+        
         [SetUp]
         public void SetUp()
         {
             log = new ConsoleLog();
-            ensemble = ZooKeeperEnsemble.DeployNew(1, log);
-            instance = ensemble.Instances.Single();
+            ensemble = ZooKeeperEnsemble.DeployNew(3, log);
         }
 
         [TearDown]
