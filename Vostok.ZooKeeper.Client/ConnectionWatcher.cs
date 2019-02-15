@@ -4,11 +4,11 @@ using Vostok.Logging.Abstractions;
 
 namespace Vostok.ZooKeeper.Client
 {
-    internal class ZooKeeperWatcher : Watcher
+    internal class ConnectionWatcher : Watcher
     {
         private readonly ILog log;
 
-        public ZooKeeperWatcher(ILog log)
+        public ConnectionWatcher(ILog log)
         {
             this.log = log;
         }

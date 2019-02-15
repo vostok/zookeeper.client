@@ -36,5 +36,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.logging.context\Vostok.Logging.Context\bin\Release\netstandard2.0\Vostok.Logging.Context.dll</HintPath>
     </Reference>
+    <Reference Include="Vostok.Commons.Time">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.commons.time\Vostok.Commons.Time\bin\Release\netstandard2.0\Vostok.Commons.Time.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

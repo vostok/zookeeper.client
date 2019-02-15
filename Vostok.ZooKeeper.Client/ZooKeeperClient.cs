@@ -12,31 +12,30 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 namespace Vostok.ZooKeeper.Client
 {
     /// <summary>
-    /// <para>Represents a ZooKeeper client.</para>
+    /// Represents a ZooKeeper client.
     /// </summary>
     [PublicAPI]
     public class ZooKeeperClient : IZooKeeperClient
     {
         private readonly ILog log;
-        private readonly org.apache.zookeeper.ZooKeeper client;
+        private readonly ZooKeeperClientSetup setup;
+        private readonly ClientHolder clientHolder;
 
-        public ZooKeeperClient(ILog log, string connectionString, TimeSpan timeOut)
+        public ZooKeeperClient(ILog log, ZooKeeperClientSetup setup)
         {
+            this.setup = setup;
+
             log = log.ForContext<ZooKeeperClient>();
             this.log = log;
+            ZooKeeperHelper.InjectLogging(log);
 
-            org.apache.zookeeper.ZooKeeper.CustomLogConsumer = new ZooKeeperLogConsumer(log);
-            org.apache.zookeeper.ZooKeeper.LogLevel = TraceLevel.Verbose;
-            org.apache.zookeeper.ZooKeeper.LogToFile = false;
-            org.apache.zookeeper.ZooKeeper.LogToTrace = false;
-
-            client = new org.apache.zookeeper.ZooKeeper(connectionString, (int)timeOut.TotalMilliseconds, new ZooKeeperWatcher(log));
+            clientHolder = new ClientHolder(log, setup);
         }
 
         public async Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request)
         {
             log.Debug($"Trying to {request}.");
-            var newPath = await client.createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
+            var newPath = await clientHolder.GetConnectedClient().createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
             return new CreateZooKeeperResult(ZooKeeperStatus.Ok, newPath, newPath);
         }
 
@@ -73,7 +72,7 @@ namespace Vostok.ZooKeeper.Client
         public async Task<GetDataZooKeeperResult> GetDataAsync(GetDataZooKeeperRequest request)
         {
             log.Debug($"Trying to {request}.");
-            var data = await client.getDataAsync(request.Path).ConfigureAwait(false);
+            var data = await clientHolder.GetConnectedClient().getDataAsync(request.Path).ConfigureAwait(false);
             return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
         }
 
@@ -81,12 +80,11 @@ namespace Vostok.ZooKeeper.Client
 
         public bool IsConnected { get; }
 
-        public long SessionId => client.getSessionId();
+        public long SessionId { get; }
 
         public void Dispose()
         {
             log.Debug($"Disposing client.");
-            client.closeAsync().Wait();
         }
     }
 }
