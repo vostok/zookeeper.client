@@ -15,13 +15,12 @@ namespace Vostok.ZooKeeper.Client.Tests
     [TestFixture]
     internal class ZooKeeperClient_Tests
     {
-        private ILog log;
+        private readonly ILog log = new ConsoleLog();
         private ZooKeeperEnsemble ensemble;
         
         [SetUp]
         public void SetUp()
         {
-            log = new ConsoleLog();
             ensemble = ZooKeeperEnsemble.DeployNew(1, log);
         }
 
