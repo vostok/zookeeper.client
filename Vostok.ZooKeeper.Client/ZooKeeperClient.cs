@@ -35,7 +35,7 @@ namespace Vostok.ZooKeeper.Client
         public async Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request)
         {
             log.Debug($"Trying to {request}.");
-            var newPath = await (await clientHolder.GetConnectedClient()).createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
+            var newPath = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
             return new CreateZooKeeperResult(ZooKeeperStatus.Ok, newPath, newPath);
         }
 
@@ -72,7 +72,7 @@ namespace Vostok.ZooKeeper.Client
         public async Task<GetDataZooKeeperResult> GetDataAsync(GetDataZooKeeperRequest request)
         {
             log.Debug($"Trying to {request}.");
-            var data = await (await clientHolder.GetConnectedClient()).getDataAsync(request.Path).ConfigureAwait(false);
+            var data = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).getDataAsync(request.Path).ConfigureAwait(false);
             return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
         }
 

@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
@@ -31,10 +32,12 @@ namespace Vostok.ZooKeeper.Client
 
             try
             {
-                var x = await OnConnectionStateChanged
+                await OnConnectionStateChanged
                     .Where(state => state == ConnectionState.Connected)
                     .Timeout(setup.Timeout)
-                    .FirstAsync();
+                    .FirstAsync()
+                    .ToTask()
+                    .ConfigureAwait(false);
             }
             catch (TimeoutException e)
             {
