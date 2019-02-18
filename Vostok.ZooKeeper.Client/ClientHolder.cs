@@ -52,6 +52,7 @@ namespace Vostok.ZooKeeper.Client
         {
             if (client == null)
                 ResetClient();
+            // TODO(kungurtsev): or connect timeout
         }
 
         private void ResetClient()

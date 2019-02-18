@@ -15,6 +15,12 @@ namespace Vostok.ZooKeeper.Client.Tests
     {
         private readonly ILog log = new ConsoleLog();
 
+        [TearDown]
+        public void TearDown()
+        {
+            ConsoleLog.Flush();
+        }
+
         [Test]
         public async Task GetConnectedClient_should_return_connected_client()
         {
