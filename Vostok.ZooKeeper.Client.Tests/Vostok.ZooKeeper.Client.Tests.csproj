@@ -8,6 +8,10 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\vostok.commons.testing\Vostok.Commons.Testing\TaskAssertions.cs" Link="Commons\TaskAssertions.cs" />
+    <Compile Include="..\..\vostok.commons.testing\Vostok.Commons.Testing\ExceptionAssertions.cs" Link="Commons\ExceptionAssertions.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />

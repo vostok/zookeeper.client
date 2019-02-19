@@ -340,7 +340,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private ZooKeeperClient Client()
         {
-            return new ZooKeeperClient(log, new ZooKeeperClientSetup(() => ensemble.ConnectionString));
+            return new ZooKeeperClient(log, new ZooKeeperClientSetup(() => ensemble.ConnectionString) {Timeout = 15.Seconds()});
         }
     }
 }

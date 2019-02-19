@@ -4,6 +4,7 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using Vostok.Commons.Testing;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.LocalEnsemble;
@@ -27,12 +28,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task GetConnectedClient_should_be_null_when_timeout()
+        public void GetConnectedClient_should_be_null_when_timeout()
         {
-            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log, startInstances:false))
+            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log, false))
             {
                 var holder = GetClientHolder(ensemble.ConnectionString, 1.Seconds());
-                var client = await holder.GetConnectedClient();
+                var client = holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
                 client.Should().BeNull();
             }
         }
