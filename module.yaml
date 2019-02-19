@@ -17,6 +17,7 @@ notests *default:
 
 full-build > notests:
   deps:
+    - vostok.commons.testing
     - vostok.logging.console
     - vostok.zookeeper.localensemble
   build:
