@@ -15,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     [TestFixture]
     internal class ZooKeeperClient_Tests
     {
-        private readonly ILog log = new ConsoleLog();
+        private readonly ILog log = new SynchronousConsoleLog();
         private ZooKeeperEnsemble ensemble;
         
         [SetUp]
@@ -28,7 +28,6 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void TearDown()
         {
             ensemble.Dispose();
-            ConsoleLog.Flush();
         }
 
         [TestCase("/root")]

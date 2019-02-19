@@ -13,14 +13,8 @@ namespace Vostok.ZooKeeper.Client.Tests
     [TestFixture]
     public class ClientHolder_Tests
     {
-        private readonly ILog log = new ConsoleLog();
-
-        [TearDown]
-        public void TearDown()
-        {
-            ConsoleLog.Flush();
-        }
-
+        private readonly ILog log = new SynchronousConsoleLog();
+        
         [Test]
         public async Task GetConnectedClient_should_return_connected_client()
         {
