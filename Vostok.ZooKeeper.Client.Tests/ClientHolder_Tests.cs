@@ -39,9 +39,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(connectionString);
-            if (timeout.HasValue)
-                setup.Timeout = timeout.Value;
+            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? 15.Seconds()};
             return new ClientHolder(log, setup);
         }
     }
