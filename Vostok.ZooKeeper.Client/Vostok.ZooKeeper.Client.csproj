@@ -21,8 +21,10 @@
     <RepositoryUrl>https://github.com/vostok/zookeeper.client</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Reactive" Version="4.1.2" />
     <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\vostok.commons.helpers\Vostok.Commons.Helpers\Observable\CachingObservable.cs" Link="Commons\CachingObservable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Vostok.ZooKeeper.Client.Abstractions">

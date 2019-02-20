@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
+using Vostok.Commons.Helpers.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
@@ -27,7 +27,7 @@ namespace Vostok.ZooKeeper.Client
             ZooKeeperHelper.InjectLogging(log);
         }
 
-        public Subject<ConnectionState> OnConnectionStateChanged { get; } = new Subject<ConnectionState>();
+        public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>();
 
         public ConnectionState ConnectionState { get; set; } = ConnectionState.Disconnected;
 
@@ -73,11 +73,9 @@ namespace Vostok.ZooKeeper.Client
 
                 if (ConnectionState == ConnectionState.Connected)
                 {
-                    OnConnectionStateChanged.OnNext(ConnectionState.Disconnected);
+                    OnConnectionStateChanged.Next(ConnectionState.Disconnected);
                     ConnectionState = ConnectionState.Disconnected;
                 }
-
-                OnConnectionStateChanged.Dispose();
 
                 client.Dispose();
             }
@@ -92,11 +90,13 @@ namespace Vostok.ZooKeeper.Client
 
         private void ResetClient()
         {
-            // TODO(kungurtsev): dispose old client with watchers
             lock (sync)
             {
                 if (disposed)
                     return;
+
+                // TODO(kungurtsev): dispose old client with watchers
+                //client?.Dispose();
 
                 var connectionWathcher = new ConnectionWatcher(log, ProcessEvent);
                 client = new ZooKeeperNetExClient(
@@ -128,7 +128,7 @@ namespace Vostok.ZooKeeper.Client
                     connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
                 
                 ConnectionState = newConnectionState;
-                OnConnectionStateChanged.OnNext(newConnectionState);
+                OnConnectionStateChanged.Next(newConnectionState);
             }
         }
 
