@@ -18,9 +18,12 @@ namespace Vostok.ZooKeeper.Client
 
         public override Task process(WatchedEvent @event)
         {
-            log.Info($"Recieved event {@event}");
-            action(@event);
-            return Task.CompletedTask;
+            return Task.Run(
+                () =>
+                {
+                    log.Debug($"Recieved event {@event}");
+                    action(@event);
+                });
         }
     }
 }

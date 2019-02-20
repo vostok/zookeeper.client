@@ -27,7 +27,6 @@ namespace Vostok.ZooKeeper.Client
 
             log = log.ForContext<ZooKeeperClient>();
             this.log = log;
-            ZooKeeperHelper.InjectLogging(log);
 
             clientHolder = new ClientHolder(log, setup);
         }

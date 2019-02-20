@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -16,6 +17,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal class ZooKeeperClient_Tests
     {
         private readonly ILog log = new SynchronousConsoleLog();
+        private static readonly TimeSpan DefaultTimeout = 15.Seconds();
         private ZooKeeperEnsemble ensemble;
         
         [SetUp]
@@ -340,7 +342,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private ZooKeeperClient Client()
         {
-            return new ZooKeeperClient(log, new ZooKeeperClientSetup(() => ensemble.ConnectionString) {Timeout = 15.Seconds()});
+            return new ZooKeeperClient(log, new ZooKeeperClientSetup(() => ensemble.ConnectionString) {Timeout = DefaultTimeout});
         }
     }
 }

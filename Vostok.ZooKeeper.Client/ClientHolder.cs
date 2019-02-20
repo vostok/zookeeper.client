@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Reactive;
-using System.Reactive.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
+using Waiter = System.Threading.Tasks.TaskCompletionSource<org.apache.zookeeper.ZooKeeper>;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -15,14 +15,23 @@ namespace Vostok.ZooKeeper.Client
     {
         private readonly ILog log;
         private readonly ZooKeeperClientSetup setup;
-        private ZooKeeperNetExClient client;
-        
+        private readonly object sync = new object();
+        private volatile ZooKeeperNetExClient client;
+        private volatile Waiter connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
+        private bool disposed;
+
         public ClientHolder(ILog log, ZooKeeperClientSetup setup)
         {
             this.log = log;
             this.setup = setup;
+            ZooKeeperHelper.InjectLogging(log);
         }
 
+        public Subject<ConnectionState> OnConnectionStateChanged { get; } = new Subject<ConnectionState>();
+
+        public ConnectionState ConnectionState { get; set; } = ConnectionState.Disconnected;
+
+        [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
             ResetClientIfNeeded();
@@ -30,22 +39,37 @@ namespace Vostok.ZooKeeper.Client
             if (ConnectionState == ConnectionState.Connected)
                 return client;
 
-            try
+            using (var cts = new CancellationTokenSource())
             {
-                await OnConnectionStateChanged
-                    .Where(state => state == ConnectionState.Connected)
-                    .Timeout(setup.Timeout)
-                    .FirstAsync()
-                    .ToTask()
-                    .ConfigureAwait(false);
-            }
-            catch (TimeoutException e)
-            {
-                log.Warn(e, $"Failed to get connected client in {setup.Timeout}.");
-                return null;
-            }
+                var delay = Task.Delay(setup.Timeout, cts.Token);
 
-            return client;
+                var result = await Task.WhenAny(connectWaiter.Task, delay).ConfigureAwait(false);
+                if (result == delay)
+                {
+                    log.Warn($"Failed to get connected client in {setup.Timeout}.");
+                    return null;
+                }
+
+                cts.Cancel();
+                return client;
+            }
+        }
+
+        public void InitializeConnection()
+        {
+            ResetClientIfNeeded();
+        }
+
+        public void Dispose()
+        {
+            lock (sync)
+            {
+                if (disposed)
+                    return;
+                disposed = true;
+                client.Dispose();
+                OnConnectionStateChanged.Dispose();
+            }
         }
 
         private void ResetClientIfNeeded()
@@ -58,22 +82,40 @@ namespace Vostok.ZooKeeper.Client
         private void ResetClient()
         {
             // TODO(kungurtsev): dispose old client with watchers
-            var connectionWathcher = new ConnectionWatcher(log, ProcessEvent);
-            client = new ZooKeeperNetExClient(
-                setup.ToZooKeeperConnectionString(),
-                setup.ToZooKeeperConnectionTimeout(),
-                connectionWathcher);
+            lock (sync)
+            {
+                if (disposed)
+                    return;
+
+                var connectionWathcher = new ConnectionWatcher(log, ProcessEvent);
+                client = new ZooKeeperNetExClient(
+                    setup.ToZooKeeperConnectionString(),
+                    setup.ToZooKeeperConnectionTimeout(),
+                    connectionWathcher);
+            }
         }
 
         private void ProcessEvent(WatchedEvent @event)
         {
-            if (@event.get_Type() != Watcher.Event.EventType.None)
-                return;
-
-            var oldConnectionState = ConnectionState;
-            var newConnectionState = GetNewConnectionState(@event);
-            if (newConnectionState != oldConnectionState)
+            lock (sync)
             {
+                if (disposed)
+                    return;
+
+                if (@event.get_Type() != Watcher.Event.EventType.None)
+                    return;
+
+                var oldConnectionState = ConnectionState;
+                var newConnectionState = GetNewConnectionState(@event);
+
+                if (newConnectionState == ConnectionState.Connected)
+                    connectWaiter.TrySetResult(client);
+                else
+                    connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}");
+                if (newConnectionState == oldConnectionState)
+                    return;
                 ConnectionState = newConnectionState;
                 OnConnectionStateChanged.OnNext(newConnectionState);
             }
@@ -95,14 +137,6 @@ namespace Vostok.ZooKeeper.Client
                 default:
                     return ConnectionState.Disconnected;
             }
-        }
-
-        public Subject<ConnectionState> OnConnectionStateChanged { get; } = new Subject<ConnectionState>();
-
-        public ConnectionState ConnectionState { get; set; } = ConnectionState.Disconnected;
-
-        public void Dispose()
-        {
         }
     }
 }
