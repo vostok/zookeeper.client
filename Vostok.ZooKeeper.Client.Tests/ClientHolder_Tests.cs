@@ -56,7 +56,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 WaitForNewConnectedClient(holder);
 
                 ensemble.Stop();
-                WaitForNewDisconectedClient(holder);
+                WaitForDisconectedState(holder);
 
                 ensemble.Start();
                 WaitForNewConnectedClient(holder);
@@ -76,16 +76,54 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task OnConnectionStateChanged_should_observe_disconnected()
+        public void OnConnectionStateChanged_should_observe_last_event()
+        {
+            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log))
+            {
+                var holder = GetClientHolder(ensemble.ConnectionString);
+                WaitForNewConnectedClient(holder);
+
+                holder.OnConnectionStateChanged.Subscribe(observer);
+                VerifyObserverMessages(ConnectionState.Connected);
+            }
+        }
+
+        [Test]
+        public void OnConnectionStateChanged_should_observe_disconnected()
         {
             using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log))
             {
                 var holder = GetClientHolder(ensemble.ConnectionString);
                 holder.OnConnectionStateChanged.Subscribe(observer);
-                var client = await holder.GetConnectedClient();
-                client.Should().NotBe(null);
+                WaitForNewConnectedClient(holder);
                 ensemble.Stop();
                 VerifyObserverMessages(ConnectionState.Connected, ConnectionState.Disconnected);
+            }
+        }
+
+        [Test]
+        public void Dispose_should_disconect_client()
+        {
+            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log))
+            {
+                var holder = GetClientHolder(ensemble.ConnectionString);
+                holder.OnConnectionStateChanged.Subscribe(observer);
+                WaitForNewConnectedClient(holder);
+                holder.Dispose();
+                WaitForDisconectedState(holder);
+                VerifyObserverMessages(ConnectionState.Connected, ConnectionState.Disconnected);
+            }
+        }
+
+        [Test]
+        public void Dispose_should_not_wait_for_new_clients()
+        {
+            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log, false))
+            {
+                var holder = GetClientHolder(ensemble.ConnectionString);
+                holder.Dispose();
+                var client = holder.GetConnectedClient().ShouldCompleteIn(0.5.Seconds());
+                client.Should().BeNull();
             }
         }
 
@@ -93,22 +131,23 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var client = holder.GetConnectedClient().Result;
             client.getState().Should().Be(ZooKeeperNetExClient.States.CONNECTED);
+            holder.ConnectionState.Should().Be(ConnectionState.Connected);
             return client;
         }
 
-        private static void WaitForNewDisconectedClient(ClientHolder holder)
+        private static ZooKeeperNetExClient WaitForNewDisconnectedClient(ClientHolder holder)
+        {
+            var client = holder.GetConnectedClient().Result;
+            client.Should().BeNull();
+            holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
+            return client;
+        }
+
+        private static void WaitForDisconectedState(ClientHolder holder)
         {
             Action assertion = () =>
             {
-                try
-                {
-                    var client = holder.GetConnectedClient().Result;
-                    client.Should().BeNull();
-                }
-                catch (ObjectDisposedException e)
-                {
-                    throw new AssertionException("Disposed", e);
-                }
+                holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             };
             assertion.ShouldPassIn(5.Seconds());
         }

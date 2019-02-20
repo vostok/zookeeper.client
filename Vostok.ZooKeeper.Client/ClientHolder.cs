@@ -34,6 +34,9 @@ namespace Vostok.ZooKeeper.Client
         [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
+            if (disposed)
+                return null;
+
             ResetClientIfNeeded();
 
             if (ConnectionState == ConnectionState.Connected)
@@ -67,8 +70,16 @@ namespace Vostok.ZooKeeper.Client
                 if (disposed)
                     return;
                 disposed = true;
-                client.Dispose();
+
+                if (ConnectionState == ConnectionState.Connected)
+                {
+                    OnConnectionStateChanged.OnNext(ConnectionState.Disconnected);
+                    ConnectionState = ConnectionState.Disconnected;
+                }
+
                 OnConnectionStateChanged.Dispose();
+
+                client.Dispose();
             }
         }
 
@@ -107,15 +118,15 @@ namespace Vostok.ZooKeeper.Client
 
                 var oldConnectionState = ConnectionState;
                 var newConnectionState = GetNewConnectionState(@event);
+                log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}");
+                if (newConnectionState == oldConnectionState)
+                    return;
 
                 if (newConnectionState == ConnectionState.Connected)
                     connectWaiter.TrySetResult(client);
                 else
                     connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}");
-                if (newConnectionState == oldConnectionState)
-                    return;
+                
                 ConnectionState = newConnectionState;
                 OnConnectionStateChanged.OnNext(newConnectionState);
             }
