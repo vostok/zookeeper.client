@@ -51,7 +51,7 @@ namespace Vostok.ZooKeeper.Client
                 localWaiter = connectWaiter;
             }
 
-            if (!await WaitWithTimeout(localWaiter))
+            if (!await WaitWithTimeout(localWaiter).ConfigureAwait(false))
                 return null;
 
             lock (sync)
