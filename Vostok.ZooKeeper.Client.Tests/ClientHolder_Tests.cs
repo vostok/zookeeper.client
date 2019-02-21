@@ -60,6 +60,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
                 ensemble.Start();
                 var client2 = WaitForNewConnectedClient(holder);
+
                 client2.Should().Be(client1);
             }
         }

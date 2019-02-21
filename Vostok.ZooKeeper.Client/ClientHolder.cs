@@ -61,9 +61,12 @@ namespace Vostok.ZooKeeper.Client
                     log.Warn($"Failed to get connected client in {setup.Timeout}.");
                     return null;
                 }
-
                 cts.Cancel();
-                return client;
+            }
+
+            lock (sync)
+            {
+                return ConnectionState == ConnectionState.Connected ? client : null;
             }
         }
 
