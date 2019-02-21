@@ -75,15 +75,15 @@ namespace Vostok.ZooKeeper.Client
             return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
         }
 
-        public IObservable<ConnectionState> OnConnectionStateChanged { get; }
+        public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
 
-        public bool IsConnected { get; }
-
+        public ConnectionState ConnectionState => clientHolder.ConnectionState;
         public long SessionId { get; }
 
         public void Dispose()
         {
             log.Debug($"Disposing client.");
+            clientHolder.Dispose();
         }
     }
 }

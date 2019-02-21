@@ -16,5 +16,17 @@ namespace Vostok.ZooKeeper.Client
                 // ignored
             }
         }
+
+        public static long GetSessionId(this ZooKeeperNetExClient client)
+        {
+            try
+            {
+                return client?.getSessionId() ?? 0;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
     }
 }

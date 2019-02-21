@@ -29,7 +29,18 @@ namespace Vostok.ZooKeeper.Client
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>();
 
-        public ConnectionState ConnectionState { get; set; } = ConnectionState.Disconnected;
+        public ConnectionState ConnectionState { get; private set; } = ConnectionState.Disconnected;
+
+        public long SessionId()
+        {
+            lock (sync)
+            {
+                if (disposed)
+                    return 0;
+
+                return client.GetSessionId();
+            }
+        }
 
         [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
@@ -90,12 +101,14 @@ namespace Vostok.ZooKeeper.Client
 
         private void ResetClient()
         {
+            log.Debug("Reseting client.");
             lock (sync)
             {
                 if (disposed)
                     return;
 
                 // TODO(kungurtsev): dispose old client with watchers
+                // TODO(kungurtsev): change state or send events?
                 //client?.Dispose();
 
                 var connectionWathcher = new ConnectionWatcher(log, ProcessEvent);
@@ -118,21 +131,23 @@ namespace Vostok.ZooKeeper.Client
 
                 var oldConnectionState = ConnectionState;
                 var newConnectionState = GetNewConnectionState(@event);
-                log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}");
+                log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}.");
                 if (newConnectionState == oldConnectionState)
                     return;
 
+                if (oldConnectionState == ConnectionState.Connected)
+                    connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
                 if (newConnectionState == ConnectionState.Connected)
                     connectWaiter.TrySetResult(client);
-                else
-                    connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
+                if (newConnectionState == ConnectionState.Expired)
+                    ResetClient();
                 
                 ConnectionState = newConnectionState;
                 OnConnectionStateChanged.Next(newConnectionState);
             }
         }
 
-        private ConnectionState GetNewConnectionState(WatchedEvent @event)
+        private static ConnectionState GetNewConnectionState(WatchedEvent @event)
         {
             switch (@event.getState())
             {
@@ -141,7 +156,6 @@ namespace Vostok.ZooKeeper.Client
                 case Watcher.Event.KeeperState.ConnectedReadOnly:
                     return ConnectionState.ConnectedReadonly;
                 case Watcher.Event.KeeperState.Expired:
-                    ResetClient();
                     return ConnectionState.Expired;
                 case Watcher.Event.KeeperState.AuthFailed:
                 case Watcher.Event.KeeperState.Disconnected:

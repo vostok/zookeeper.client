@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -53,13 +54,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log))
             {
                 var holder = GetClientHolder(ensemble.ConnectionString);
-                WaitForNewConnectedClient(holder);
+                var client1 = WaitForNewConnectedClient(holder);
 
                 ensemble.Stop();
                 WaitForDisconectedState(holder);
 
                 ensemble.Start();
-                WaitForNewConnectedClient(holder);
+                var client2 = WaitForNewConnectedClient(holder);
+                client2.Should().Be(client1);
             }
         }
 
