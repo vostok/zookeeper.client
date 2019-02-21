@@ -83,6 +83,7 @@ namespace Vostok.ZooKeeper.Client
                 }
 
                 client.Dispose();
+                connectionWatcher.Dispose();
             }
         }
 
@@ -112,7 +113,6 @@ namespace Vostok.ZooKeeper.Client
                 var result = await Task.WhenAny(localWaiter.Task, delay).ConfigureAwait(false);
                 if (result == delay)
                 {
-                    log.Warn($"Failed to get connected client in {setup.Timeout}.");
                     return false;
                 }
 
