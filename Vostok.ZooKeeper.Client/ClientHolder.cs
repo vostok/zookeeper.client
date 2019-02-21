@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
@@ -35,23 +34,28 @@ namespace Vostok.ZooKeeper.Client
 
         public long SessionId => GetSessionIdInternal();
 
-        [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
-        // TODO(kungurtsev): lock
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
-            if (disposed)
-                return null;
+            Waiter localWaiter;
 
-            ResetClientIfNeeded();
+            lock (sync)
+            {
+                if (disposed)
+                    return null;
 
-            if (ConnectionState == ConnectionState.Connected)
-                return client;
+                ResetClientIfNeeded();
+
+                if (ConnectionState == ConnectionState.Connected)
+                    return client;
+
+                localWaiter = connectWaiter;
+            }
 
             using (var cts = new CancellationTokenSource())
             {
                 var delay = Task.Delay(setup.Timeout, cts.Token);
 
-                var result = await Task.WhenAny(connectWaiter.Task, delay).ConfigureAwait(false);
+                var result = await Task.WhenAny(localWaiter.Task, delay).ConfigureAwait(false);
                 if (result == delay)
                 {
                     log.Warn($"Failed to get connected client in {setup.Timeout}.");
@@ -65,7 +69,10 @@ namespace Vostok.ZooKeeper.Client
 
         public void InitializeConnection()
         {
-            ResetClientIfNeeded();
+            lock (sync)
+            {
+                ResetClientIfNeeded();
+            }
         }
 
         public void Dispose()
@@ -121,9 +128,6 @@ namespace Vostok.ZooKeeper.Client
 
                 if (disposed)
                     return;
-
-                // TODO(kungurtsev): dispose old client with watchers
-                // TODO(kungurtsev): change state or send events?
 
                 if (client != null)
                 {

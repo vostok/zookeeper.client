@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     public class ClientHolder_Tests
     {
         private readonly ILog log = new SynchronousConsoleLog();
-        private static readonly TimeSpan DefaultTimeout = 15.Seconds();
+        private static readonly TimeSpan DefaultTimeout = 10.Seconds();
         private TestObserver<ConnectionState> observer;
 
         [SetUp]
