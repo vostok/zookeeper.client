@@ -78,7 +78,8 @@ namespace Vostok.ZooKeeper.Client
         public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
 
         public ConnectionState ConnectionState => clientHolder.ConnectionState;
-        public long SessionId { get; }
+
+        public long SessionId => clientHolder.SessionId;
 
         public void Dispose()
         {
