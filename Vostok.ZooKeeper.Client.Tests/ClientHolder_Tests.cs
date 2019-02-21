@@ -33,6 +33,9 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 var holder = GetClientHolder(ensemble.ConnectionString);
                 WaitForNewConnectedClient(holder);
+
+                holder.ConnectionState.Should().Be(ConnectionState.Connected);
+                holder.SessionId.Should().NotBe(0);
             }
         }
 
@@ -44,6 +47,9 @@ namespace Vostok.ZooKeeper.Client.Tests
                 var holder = GetClientHolder(ensemble.ConnectionString, 1.Seconds());
                 var client = holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
                 client.Should().BeNull();
+
+                holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
+                holder.SessionId.Should().Be(0);
             }
         }
 
@@ -128,7 +134,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 VerifyObserverMessages(ConnectionState.Connected, ConnectionState.Disconnected);
             }
         }
-
+        
         [Test]
         public void Dispose_should_disconect_client()
         {
