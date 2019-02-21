@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Vostok.Logging.Abstractions;
+using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -7,10 +8,10 @@ namespace Vostok.ZooKeeper.Client
     {
         public static void InjectLogging(ILog log)
         {
-            org.apache.zookeeper.ZooKeeper.CustomLogConsumer = new ZooKeeperLogConsumer(log);
-            org.apache.zookeeper.ZooKeeper.LogLevel = TraceLevel.Verbose;
-            org.apache.zookeeper.ZooKeeper.LogToFile = false;
-            org.apache.zookeeper.ZooKeeper.LogToTrace = false;
+            ZooKeeperNetExClient.CustomLogConsumer = new ZooKeeperLogConsumer(log);
+            ZooKeeperNetExClient.LogLevel = TraceLevel.Verbose;
+            ZooKeeperNetExClient.LogToFile = false;
+            ZooKeeperNetExClient.LogToTrace = false;
         }
     }
 }

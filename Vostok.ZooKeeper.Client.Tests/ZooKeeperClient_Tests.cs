@@ -14,16 +14,14 @@ using Vostok.ZooKeeper.LocalEnsemble;
 namespace Vostok.ZooKeeper.Client.Tests
 {
     [TestFixture]
-    internal class ZooKeeperClient_Tests
+    internal class ZooKeeperClient_Tests : TestsBase
     {
-        private readonly ILog log = new SynchronousConsoleLog();
-        private static readonly TimeSpan DefaultTimeout = 15.Seconds();
         private ZooKeeperEnsemble ensemble;
         
         [SetUp]
         public void SetUp()
         {
-            ensemble = ZooKeeperEnsemble.DeployNew(1, log);
+            ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
         }
 
         [TearDown]
@@ -37,7 +35,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         //[TestCase("/a/b/c2")]
         public async Task Create_persistent_node_should_work_with_different_pathes(string path)
         {
-            using (var client = Client())
+            using (var client = GetClient(ensemble.ConnectionString))
             {
                 await client.CreateAsync(new CreateZooKeeperRequest(path, null, CreateMode.Persistent));
                 var node = await client.GetDataAsync(new GetDataZooKeeperRequest(path));
@@ -340,9 +338,5 @@ namespace Vostok.ZooKeeper.Client.Tests
         //    client.closeAsync().Wait();
         //}
 
-        private ZooKeeperClient Client()
-        {
-            return new ZooKeeperClient(log, new ZooKeeperClientSetup(() => ensemble.ConnectionString) {Timeout = DefaultTimeout});
-        }
     }
 }

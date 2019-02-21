@@ -83,7 +83,7 @@ namespace Vostok.ZooKeeper.Client
                 }
 
                 client.Dispose();
-                connectionWatcher.Dispose();
+                connectionWatcher?.Dispose();
             }
         }
 
