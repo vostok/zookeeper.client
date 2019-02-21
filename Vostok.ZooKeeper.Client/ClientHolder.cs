@@ -51,18 +51,8 @@ namespace Vostok.ZooKeeper.Client
                 localWaiter = connectWaiter;
             }
 
-            using (var cts = new CancellationTokenSource())
-            {
-                var delay = Task.Delay(setup.Timeout, cts.Token);
-
-                var result = await Task.WhenAny(localWaiter.Task, delay).ConfigureAwait(false);
-                if (result == delay)
-                {
-                    log.Warn($"Failed to get connected client in {setup.Timeout}.");
-                    return null;
-                }
-                cts.Cancel();
-            }
+            if (!await WaitWithTimeout(localWaiter))
+                return null;
 
             lock (sync)
             {
@@ -113,11 +103,30 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
+        private async Task<bool> WaitWithTimeout(Waiter localWaiter)
+        {
+            using (var cts = new CancellationTokenSource())
+            {
+                var delay = Task.Delay(setup.Timeout, cts.Token);
+
+                var result = await Task.WhenAny(localWaiter.Task, delay).ConfigureAwait(false);
+                if (result == delay)
+                {
+                    log.Warn($"Failed to get connected client in {setup.Timeout}.");
+                    return false;
+                }
+
+                cts.Cancel();
+            }
+
+            return true;
+        }
+
         private void ResetClientIfNeeded()
         {
             lock (sync)
             {
-                if (client == null || 
+                if (client == null ||
                     ConnectionState != ConnectionState.Connected && DateTime.Now - lastConnectionStateChanged > setup.Timeout)
                     ResetClient();
             }
