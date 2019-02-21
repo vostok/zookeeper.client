@@ -19,6 +19,7 @@ namespace Vostok.ZooKeeper.Client
         private volatile ZooKeeperNetExClient client;
         private volatile Waiter connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
         private volatile ConnectionWatcher connectionWatcher;
+        private DateTime lastConnectionStateChanged = DateTime.Now;
         private bool disposed;
 
         public ClientHolder(ILog log, ZooKeeperClientSetup setup)
@@ -35,6 +36,7 @@ namespace Vostok.ZooKeeper.Client
         public long SessionId => GetSessionIdInternal();
 
         [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
+        // TODO(kungurtsev): lock
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
             if (disposed)
@@ -105,9 +107,8 @@ namespace Vostok.ZooKeeper.Client
         {
             lock (sync)
             {
-                // TODO(kungurtsev): or connect timeout
-
-                if (client == null)
+                if (client == null || 
+                    ConnectionState != ConnectionState.Connected && DateTime.Now - lastConnectionStateChanged > setup.Timeout)
                     ResetClient();
             }
         }
@@ -135,6 +136,8 @@ namespace Vostok.ZooKeeper.Client
                     setup.ToZooKeeperConnectionString(),
                     setup.ToZooKeeperConnectionTimeout(),
                     connectionWatcher);
+
+                lastConnectionStateChanged = DateTime.Now;
             }
         }
 
@@ -162,6 +165,7 @@ namespace Vostok.ZooKeeper.Client
                     ResetClient();
 
                 ConnectionState = newConnectionState;
+                lastConnectionStateChanged = DateTime.Now;
                 OnConnectionStateChanged.Next(newConnectionState);
             }
         }
@@ -170,10 +174,7 @@ namespace Vostok.ZooKeeper.Client
         {
             lock (sync)
             {
-                if (disposed)
-                    return 0;
-
-                return client.GetSessionId();
+                return disposed ? 0 : client.GetSessionId();
             }
         }
     }

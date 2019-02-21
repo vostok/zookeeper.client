@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
@@ -62,6 +61,32 @@ namespace Vostok.ZooKeeper.Client.Tests
                 ensemble.Start();
                 var client2 = WaitForNewConnectedClient(holder);
                 client2.Should().Be(client1);
+            }
+        }
+
+        [Test]
+        public void GetConnectedClient_should_reconect_to_new_enseble_after_timeout()
+        {
+            using (var ensemble = ZooKeeperEnsemble.DeployNew(1, log))
+            {
+                var connectionString = ensemble.ConnectionString;
+                var setup = new ZooKeeperClientSetup(() => connectionString) { Timeout = DefaultTimeout };
+
+                var holder = new ClientHolder(log, setup);
+                WaitForNewConnectedClient(holder);
+
+                ensemble.Dispose();
+                WaitForDisconectedState(holder);
+
+                using (var ensemble2 = ZooKeeperEnsemble.DeployNew(1, log))
+                {
+                    ensemble2.ConnectionString.Should().NotBe(connectionString);
+                    connectionString = ensemble2.ConnectionString;
+
+                    Thread.Sleep(DefaultTimeout);
+
+                    WaitForNewConnectedClient(holder);
+                }
             }
         }
 
@@ -136,15 +161,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             holder.ConnectionState.Should().Be(ConnectionState.Connected);
             return client;
         }
-
-        private static ZooKeeperNetExClient WaitForNewDisconnectedClient(ClientHolder holder)
-        {
-            var client = holder.GetConnectedClient().Result;
-            client.Should().BeNull();
-            holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
-            return client;
-        }
-
+        
         private static void WaitForDisconectedState(ClientHolder holder)
         {
             Action assertion = () =>
@@ -153,7 +170,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             };
             assertion.ShouldPassIn(5.Seconds());
         }
-
+        
         private void VerifyObserverMessages(params ConnectionState[] states)
         {
             Action assertion = () =>
