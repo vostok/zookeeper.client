@@ -10,6 +10,7 @@ notests *default:
 
   deps:
     - vostok.commons.time
+    - vostok.commons.helpers/src
     - vostok.logging.context
     - vostok.logging.abstractions
     - vostok.zookeeper.client.abstractions
@@ -17,7 +18,7 @@ notests *default:
 
 full-build > notests:
   deps:
-    - vostok.commons.testing
+    - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble
   build:
