@@ -16,20 +16,6 @@ namespace Vostok.ZooKeeper.Client.Tests
     [TestFixture]
     internal class ZooKeeperClient_Tests : TestsBase
     {
-        private ZooKeeperEnsemble ensemble;
-
-        [SetUp]
-        public void SetUp()
-        {
-            ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            ensemble.Dispose();
-        }
-
         [TestCase("/root")]
         //[TestCase("/a/b/c1")]
         //[TestCase("/a/b/c2")]

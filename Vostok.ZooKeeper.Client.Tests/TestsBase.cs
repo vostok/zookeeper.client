@@ -4,11 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.Commons.Testing.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.LocalEnsemble;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Tests
@@ -16,7 +18,28 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal abstract class TestsBase
     {
         protected static TimeSpan DefaultTimeout = 10.Seconds();
-        protected static ILog Log = new SynchronousConsoleLog();
+        protected static readonly ILog Log = new SynchronousConsoleLog();
+
+        protected ZooKeeperEnsemble ensemble;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            if (!ensemble.IsRunning)
+                ensemble.Start();
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            ensemble.Dispose();
+        }
 
         protected static ZooKeeperNetExClient WaitForNewConnectedClient(ClientHolder holder)
         {
