@@ -31,6 +31,12 @@ namespace Vostok.ZooKeeper.Client
             clientHolder = new ClientHolder(log, setup);
         }
 
+        public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
+
+        public ConnectionState ConnectionState => clientHolder.ConnectionState;
+
+        public long SessionId => clientHolder.SessionId;
+
         public async Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request)
         {
             log.Debug($"Trying to {request}.");
@@ -74,12 +80,6 @@ namespace Vostok.ZooKeeper.Client
             var data = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).getDataAsync(request.Path).ConfigureAwait(false);
             return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
         }
-
-        public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
-
-        public ConnectionState ConnectionState => clientHolder.ConnectionState;
-
-        public long SessionId => clientHolder.SessionId;
 
         public void Dispose()
         {

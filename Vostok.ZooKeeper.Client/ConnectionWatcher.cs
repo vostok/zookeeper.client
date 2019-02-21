@@ -7,9 +7,9 @@ namespace Vostok.ZooKeeper.Client
 {
     internal class ConnectionWatcher : Watcher, IDisposable
     {
+        public bool Disposed;
         private readonly ILog log;
         private readonly Action<WatchedEvent, ConnectionWatcher> action;
-        public bool Disposed;
 
         public ConnectionWatcher(ILog log, Action<WatchedEvent, ConnectionWatcher> action)
         {

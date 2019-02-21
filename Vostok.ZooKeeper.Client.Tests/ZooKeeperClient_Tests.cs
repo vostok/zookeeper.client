@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal class ZooKeeperClient_Tests : TestsBase
     {
         private ZooKeeperEnsemble ensemble;
-        
+
         [SetUp]
         public void SetUp()
         {
@@ -44,8 +44,6 @@ namespace Vostok.ZooKeeper.Client.Tests
                 node.Stat.Version.Should().Be(0);
             }
         }
-
-
 
         //[Test]
         //public void IsStarted_should_be_false_by_default()
@@ -87,7 +85,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         //        checkNewSessionIdAndPassword.ShouldPassIn(10.Seconds());
         //    }
         //}
-        
+
         //[TestCase("/persistentNode")]
         //public void Created_persistent_node_should_be_alive_after_client_stop(string path)
         //{
@@ -337,6 +335,5 @@ namespace Vostok.ZooKeeper.Client.Tests
         //    }
         //    client.closeAsync().Wait();
         //}
-
     }
 }

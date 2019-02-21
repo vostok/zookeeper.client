@@ -28,39 +28,14 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected static void WaitForDisconectedState(ClientHolder holder)
         {
-            Action assertion = () =>
-            {
-                holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
-            };
+            Action assertion = () => { holder.ConnectionState.Should().Be(ConnectionState.Disconnected); };
             assertion.ShouldPassIn(5.Seconds());
         }
 
         protected static void VerifyObserverMessages(TestObserver<ConnectionState> observer, params ConnectionState[] states)
         {
-            Action assertion = () =>
-            {
-                observer.Values.Should().BeEquivalentTo(states, options => options.WithStrictOrdering());
-            };
+            Action assertion = () => { observer.Values.Should().BeEquivalentTo(states, options => options.WithStrictOrdering()); };
             assertion.ShouldPassIn(DefaultTimeout, 0.5.Seconds());
-        }
-
-        protected ZooKeeperClient GetClient(string connectionString, TimeSpan? timeout = null)
-        {
-            var setup = new ZooKeeperClientSetup(connectionString) { Timeout = timeout ?? DefaultTimeout };
-            return new ZooKeeperClient(Log, setup);
-        }
-
-        protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
-        {
-            var setup = new ZooKeeperClientSetup(connectionString) { Timeout = timeout ?? DefaultTimeout };
-            return new ClientHolder(Log, setup);
-        }
-
-        protected TestObserver<ConnectionState> GetObserver(ClientHolder holder)
-        {
-            var observer = new TestObserver<ConnectionState>();
-            holder.OnConnectionStateChanged.Subscribe(observer);
-            return observer;
         }
 
         protected static async Task KillSession(ClientHolder holder, string connectionString)
@@ -83,14 +58,35 @@ namespace Vostok.ZooKeeper.Client.Tests
                     {
                         return;
                     }
+
                     Thread.Sleep(100);
                 }
+
                 throw new TimeoutException($"Expected to kill session within {DefaultTimeout}, but failed to do so.");
             }
             finally
             {
                 await zooKeeper.closeAsync();
             }
+        }
+
+        protected ZooKeeperClient GetClient(string connectionString, TimeSpan? timeout = null)
+        {
+            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? DefaultTimeout};
+            return new ZooKeeperClient(Log, setup);
+        }
+
+        protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
+        {
+            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? DefaultTimeout};
+            return new ClientHolder(Log, setup);
+        }
+
+        protected TestObserver<ConnectionState> GetObserver(ClientHolder holder)
+        {
+            var observer = new TestObserver<ConnectionState>();
+            holder.OnConnectionStateChanged.Subscribe(observer);
+            return observer;
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 var connectionString = ensemble.ConnectionString;
                 // ReSharper disable once AccessToModifiedClosure
-                var setup = new ZooKeeperClientSetup(() => connectionString) { Timeout = DefaultTimeout };
+                var setup = new ZooKeeperClientSetup(() => connectionString) {Timeout = DefaultTimeout};
 
                 var holder = new ClientHolder(Log, setup);
                 WaitForNewConnectedClient(holder);
