@@ -9,6 +9,7 @@ using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 using Vostok.ZooKeeper.LocalEnsemble;
 
 namespace Vostok.ZooKeeper.Client.Tests
@@ -16,19 +17,100 @@ namespace Vostok.ZooKeeper.Client.Tests
     [TestFixture]
     internal class ZooKeeperClient_Tests : TestsBase
     {
-        [TestCase("/root")]
-        //[TestCase("/a/b/c1")]
-        //[TestCase("/a/b/c2")]
-        public async Task Create_persistent_node_should_work_with_different_pathes(string path)
-        {
-            using (var client = GetClient(ensemble.ConnectionString))
-            {
-                await client.CreateAsync(new CreateZooKeeperRequest(path, null, CreateMode.Persistent));
-                var node = await client.GetDataAsync(new GetDataZooKeeperRequest(path));
+        private ZooKeeperClient client;
 
-                node.Path.Should().Be(path);
-                node.Stat.Version.Should().Be(0);
+        [OneTimeSetUp]
+        public new void OneTimeSetUp()
+        {
+            client = GetClient();
+        }
+
+        [OneTimeTearDown]
+        public new void OneTimeTearDown()
+        {
+            client.Dispose();
+        }
+
+        [TestCase("/root_persistent")]
+        public async Task Create_should_create_persistent_node(string path)
+        {
+            using (var client1 = GetClient())
+            {
+                var createResult = await client1.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+                createResult.EnsureSuccess();
             }
+
+            using (var client2 = GetClient())
+            {
+                await VerifyNodeCreated(client2, path);
+            }
+        }
+
+        [TestCase("/root_ephemeral")]
+        public async Task Create_should_create_ephemeral_node(string path)
+        {
+            using (var client1 = GetClient())
+            {
+                var createResult = await client1.CreateAsync(new CreateRequest(path, CreateMode.Ephemeral));
+                createResult.EnsureSuccess();
+
+                using (var client2 = GetClient())
+                {
+                    await VerifyNodeCreated(client2, path);
+
+                    client1.Dispose();
+
+                    await VerifyNodeDeleted(client2, path);
+                }
+            }
+        }
+
+        [Test, Combinatorial]
+        public async Task Create_should_save_data(
+            [Values(0, 1, 10, 1024, 1024*10, 1024 * 100, Helper.DataSizeLimit)] int size,
+            [Values(CreateMode.Persistent, CreateMode.Ephemeral)] CreateMode createMode)
+        {
+            var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
+            var createResult = await client.CreateAsync(new CreateRequest($"/create_with_data_{size}_{createMode}", createMode) { Data = data });
+            createResult.EnsureSuccess();
+
+            // TODO(kungurtsev): check data
+        }
+
+        [TestCase("without_slash_at_the_beggingig")]
+        [TestCase("/with_extra_slash_at_the_ending/")]
+        public async Task Create_should_not_works_with_bad_path(string path)
+        {
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            createResult.Exception.Should().BeOfType<ArgumentException>();
+
+            ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+        }
+
+        [Test]
+        public async Task Create_should_not_works_with_big_data()
+        {
+            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[Helper.DataSizeLimit + 1]});
+            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            createResult.Exception.Should().BeOfType<ArgumentException>();
+        }
+
+        private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
+        {
+            var node = await client.GetDataAsync(new GetDataRequest(path));
+            node.EnsureSuccess();
+
+            node.Path.Should().Be(path);
+            node.Stat.Version.Should().Be(0);
+        }
+
+        private static async Task VerifyNodeDeleted(ZooKeeperClient client, string path)
+        {
+            var node = await client.ExistsAsync( new ExistsRequest(path));
+            node.EnsureSuccess();
+
+            node.Exists.Should().BeFalse();
         }
 
         //[Test]

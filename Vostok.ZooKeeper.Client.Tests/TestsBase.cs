@@ -93,9 +93,9 @@ namespace Vostok.ZooKeeper.Client.Tests
             }
         }
 
-        protected ZooKeeperClient GetClient(string connectionString, TimeSpan? timeout = null)
+        protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? DefaultTimeout};
+            var setup = new ZooKeeperClientSetup(ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
             return new ZooKeeperClient(Log, setup);
         }
 

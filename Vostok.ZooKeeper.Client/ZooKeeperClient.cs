@@ -8,6 +8,8 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Operations;
+using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -15,7 +17,7 @@ namespace Vostok.ZooKeeper.Client
     /// Represents a ZooKeeper client.
     /// </summary>
     [PublicAPI]
-    public class ZooKeeperClient : IZooKeeperClient
+    public class ZooKeeperClient : IZooKeeperClient, IDisposable
     {
         private readonly ILog log;
         private readonly ZooKeeperClientSetup setup;
@@ -37,54 +39,79 @@ namespace Vostok.ZooKeeper.Client
 
         public long SessionId => clientHolder.SessionId;
 
-        public async Task<CreateZooKeeperResult> CreateAsync(CreateZooKeeperRequest request)
+        /// <inheritdoc />
+        public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
-            log.Debug($"Trying to {request}.");
-            var newPath = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).createAsync(request.Path, request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
-            return new CreateZooKeeperResult(ZooKeeperStatus.Ok, newPath, newPath);
+            return await PerformOperation(new CreateOperation(request));
         }
 
-        public Task<DeleteZooKeeperResult> DeleteAsync(DeleteZooKeeperRequest request)
+        public Task<DeleteResult> DeleteAsync(DeleteRequest request)
         {
-            log.Debug($"Trying to {request}.");
             throw new NotImplementedException();
         }
 
-        public Task<SetDataZooKeeperResult> SetDataAsync(SetDataZooKeeperRequest request)
+        public Task<SetDataResult> SetDataAsync(SetDataRequest request)
         {
-            log.Debug($"Trying to {request}.");
             throw new NotImplementedException();
         }
 
-        public Task<ExistsZooKeeperResult> ExistsAsync(ExistsZooKeeperRequest request)
+        public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
         {
-            log.Debug($"Checking {request}.");
+            var data = await(await clientHolder.GetConnectedClient().ConfigureAwait(false)).existsAsync(request.Path).ConfigureAwait(false);
+            return new ExistsResult(ZooKeeperStatus.Ok, request.Path, data.FromZooKeeperStat());
+        }
+
+        public Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
+        {
             throw new NotImplementedException();
         }
 
-        public Task<GetChildrenZooKeeperResult> GetChildrenAsync(GetChildrenZooKeeperRequest request)
+        public Task<GetChildrenWithStatResult> GetChildrenWithStatAsync(GetChildrenRequest request)
         {
-            log.Debug($"Trying to {request}.");
             throw new NotImplementedException();
         }
 
-        public Task<GetChildrenWithStatZooKeeperResult> GetChildrenWithStatAsync(GetChildrenZooKeeperRequest request)
+        public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
         {
-            log.Debug($"Trying to {request} with stat.");
-            throw new NotImplementedException();
-        }
-
-        public async Task<GetDataZooKeeperResult> GetDataAsync(GetDataZooKeeperRequest request)
-        {
-            log.Debug($"Trying to {request}.");
             var data = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).getDataAsync(request.Path).ConfigureAwait(false);
-            return new GetDataZooKeeperResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
+            return new GetDataResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
         }
 
         public void Dispose()
         {
-            log.Debug($"Disposing client.");
+            log.Debug("Disposing client.");
             clientHolder.Dispose();
+        }
+
+        private async Task<TResult> PerformOperation<TRequest, TResult>(BaseOperation<TRequest, TResult> operation)
+            where TRequest : ZooKeeperRequest
+            where TResult : ZooKeeperResult
+        {
+            log.Debug($"Trying to {operation.Request}.");
+            
+            var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
+            // TODO(kungurtsev): null client?
+
+            TResult result;
+            try
+            {
+                result = await operation.Execute(client).ConfigureAwait(false);
+            }
+            catch (KeeperException e)
+            {
+                result = operation.CreateUnsuccessfulResult(e.FromZooKeeperExcetion(), e);
+            }
+            catch (ArgumentException e)
+            {
+                result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, e);
+            }
+            catch (Exception e)
+            {
+                result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.UnknownError, e);
+            }
+
+            log.Debug($"Result {result}.");
+            return result;
         }
     }
 }

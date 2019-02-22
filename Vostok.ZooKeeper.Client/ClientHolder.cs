@@ -25,7 +25,7 @@ namespace Vostok.ZooKeeper.Client
         {
             this.log = log;
             this.setup = setup;
-            ZooKeeperHelper.InjectLogging(log);
+            Helper.InjectLogging(log);
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>();
