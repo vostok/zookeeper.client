@@ -70,6 +70,22 @@ namespace Vostok.ZooKeeper.Client.Tests
             var sessionId = client.getSessionId();
             var sessionPassword = client.getSessionPasswd();
 
+            await KillSession(connectionString, sessionId, sessionPassword);
+        }
+
+        protected static async Task KillSession(ZooKeeperClient client, string connectionString)
+        {
+            if (client.ConnectionState != ConnectionState.Connected)
+                return;
+
+            var sessionId = client.SessionId;
+            var sessionPassword = client.SessionPassword;
+
+            await KillSession(connectionString, sessionId, sessionPassword);
+        }
+
+        private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword)
+        {
             var zooKeeper = new ZooKeeperNetExClient(connectionString, 5000, null, sessionId, sessionPassword);
 
             try

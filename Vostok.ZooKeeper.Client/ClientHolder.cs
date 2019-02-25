@@ -34,6 +34,8 @@ namespace Vostok.ZooKeeper.Client
 
         public long SessionId => GetSessionIdInternal();
 
+        public byte[] SessionPassword => GetSessionPasswordInternal();
+
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
             Waiter localWaiter;
@@ -191,6 +193,14 @@ namespace Vostok.ZooKeeper.Client
             lock (sync)
             {
                 return disposed ? 0 : client.GetSessionId();
+            }
+        }
+
+        private byte[] GetSessionPasswordInternal()
+        {
+            lock (sync)
+            {
+                return disposed ? null : client.GetSessionPassword();
             }
         }
     }

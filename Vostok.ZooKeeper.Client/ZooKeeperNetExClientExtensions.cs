@@ -28,5 +28,17 @@ namespace Vostok.ZooKeeper.Client
                 return 0;
             }
         }
+
+        public static byte[] GetSessionPassword(this ZooKeeperNetExClient client)
+        {
+            try
+            {
+                return client?.getSessionPasswd();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

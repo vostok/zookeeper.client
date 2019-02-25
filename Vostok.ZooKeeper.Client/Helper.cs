@@ -9,7 +9,7 @@ namespace Vostok.ZooKeeper.Client
     {
         public const int DataSizeLimit = 1024 * 1023;
 
-        public static Exception DataSizeLimitExceededException(byte[] data) => new ArgumentException($"Data size limit exceeded: {data.Length} bytes, but only {DataSizeLimit} allowed.");
+        public static Exception DataSizeLimitExceededException(byte[] data) => new ArgumentException($"Data size limit exceeded: {data?.Length} bytes, but only {DataSizeLimit} bytes allowed.");
 
         public static void InjectLogging(ILog log)
         {

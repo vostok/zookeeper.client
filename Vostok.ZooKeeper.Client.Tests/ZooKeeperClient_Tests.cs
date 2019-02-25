@@ -1,16 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAssertions.Extensions;
 using NUnit.Framework;
-using Vostok.Logging.Abstractions;
-using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
-using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
-using Vostok.ZooKeeper.LocalEnsemble;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -31,38 +26,78 @@ namespace Vostok.ZooKeeper.Client.Tests
             client.Dispose();
         }
 
-        [TestCase("/root_persistent")]
-        public async Task Create_should_create_persistent_node(string path)
+        [TestCase(CreateMode.Persistent)]
+        [TestCase(CreateMode.PersistentSequential)]
+        [TestCase(CreateMode.Ephemeral)]
+        [TestCase(CreateMode.EphemeralSequential)]
+        public async Task Create_should_create_node_in_different_modes(CreateMode createMode)
         {
-            using (var client1 = GetClient())
-            {
-                var createResult = await client1.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
-                createResult.EnsureSuccess();
-            }
+            var path = $"/create_node_{createMode}";
 
-            using (var client2 = GetClient())
+            var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
+            createResult.EnsureSuccess();
+
+            if (!createMode.IsSequential())
+                createResult.NewPath.Should().Be(path);
+
+            await VerifyNodeCreated(client, createResult.NewPath);
+
+            await KillSession(client, ensemble.ConnectionString);
+
+            if (createMode.IsEphemeral())
+                await VerifyNodeDeleted(client, createResult.NewPath);
+            else
+                await VerifyNodeCreated(client, createResult.NewPath);
+        }
+
+        [TestCase(CreateMode.Ephemeral)]
+        [TestCase(CreateMode.Persistent)]
+        public async Task Create_should_create_nested_node(CreateMode mode)
+        {
+            var paths = new List<string>
             {
-                await VerifyNodeCreated(client2, path);
+                $"/create_nested_{mode}/a/b/c_first/d/e_first",
+                $"/create_nested_{mode}/a/b/c_first/d/e_second",
+                $"/create_nested_{mode}/a/b/c_second"
+            };
+
+            foreach (var path in paths)
+            {
+                var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+                createResult.EnsureSuccess();
+                (await client.ExistsAsync(new ExistsRequest(path))).Exists.Should().BeTrue();
             }
         }
 
-        [TestCase("/root_ephemeral")]
-        public async Task Create_should_create_ephemeral_node(string path)
+        [Test, Combinatorial]
+        public async Task Create_should_create_sequential_node(
+            [Values("nested_sequential/aaa/bb/c")] string path,
+            [Values(CreateMode.PersistentSequential, CreateMode.EphemeralSequential)] CreateMode createMode)
         {
-            using (var client1 = GetClient())
+            path = $"/{createMode}_{path}";
+            
+            for (var i = 0; i < 3; i++)
             {
-                var createResult = await client1.CreateAsync(new CreateRequest(path, CreateMode.Ephemeral));
+                var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
                 createResult.EnsureSuccess();
 
-                using (var client2 = GetClient())
-                {
-                    await VerifyNodeCreated(client2, path);
+                await VerifyNodeCreated(client, createResult.NewPath);
 
-                    client1.Dispose();
-
-                    await VerifyNodeDeleted(client2, path);
-                }
+                createResult.NewPath.Should().Be($"{path}{i:D10}");
             }
+        }
+
+        [Test]
+        public async Task Create_should_create_sequential_node_with_shared_parent_counter()
+        {
+            // When creating a znode you can also request that ZooKeeper append a monotonically increasing counter to the end of path.
+            // This counter is unique to the parent znode.
+
+            var createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/a", CreateMode.PersistentSequential));
+            createResult.NewPath.Should().Be($"/shared_sequential/a{0:D10}");
+
+            createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/b", CreateMode.PersistentSequential));
+            createResult.NewPath.Should().Be($"/shared_sequential/b{1:D10}");
         }
 
         [Test, Combinatorial]
@@ -77,9 +112,17 @@ namespace Vostok.ZooKeeper.Client.Tests
             // TODO(kungurtsev): check data
         }
 
+        [Test]
+        public async Task Create_should_return_BadArguments_for_big_data()
+        {
+            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[Helper.DataSizeLimit + 1]});
+            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            createResult.Exception.Should().BeOfType<ArgumentException>();
+        }
+
         [TestCase("without_slash_at_the_beggingig")]
         [TestCase("/with_extra_slash_at_the_ending/")]
-        public async Task Create_should_not_works_with_bad_path(string path)
+        public async Task Create_should_return_BadArguments_for_bad_path(string path)
         {
             var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
             createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
@@ -89,11 +132,26 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task Create_should_not_works_with_big_data()
+        public async Task Create_should_return_NodeAlreadyExists()
         {
-            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[Helper.DataSizeLimit + 1]});
-            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
-            createResult.Exception.Should().BeOfType<ArgumentException>();
+            var createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
+            createResult.EnsureSuccess();
+            createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
+
+            ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+            createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
+        }
+
+        [TestCase(CreateMode.Ephemeral)]
+        [TestCase(CreateMode.Persistent)]
+        public async Task Create_should_return_ChildrenForEphemeralsAreNotAllowed(CreateMode childCreateMode)
+        {
+            var createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}", CreateMode.Ephemeral));
+            createResult.EnsureSuccess();
+
+            createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}/child", childCreateMode));
+            ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+            createResult.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralsAreNotAllowed);
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
@@ -112,26 +170,6 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             node.Exists.Should().BeFalse();
         }
-
-        //[Test]
-        //public void IsStarted_should_be_false_by_default()
-        //{
-        //    var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), new SilentLog());
-
-        //    client.IsStarted.Should().BeFalse();
-        //    client.IsConnected.Should().BeFalse();
-        //}
-
-        //[Test]
-        //public void Start_should_start_client()
-        //{
-        //    var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), new SilentLog());
-
-        //    client.Start();
-        //    client.IsStarted.Should().BeTrue();
-        //    Action checkIsConnected = () => client.IsConnected.Should().BeTrue();
-        //    checkIsConnected.ShouldPassIn(5.Seconds());
-        //}
 
         //[Test]
         //public void Test_KillSession()

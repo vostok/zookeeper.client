@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using org.apache.zookeeper;
@@ -9,6 +10,7 @@ using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 using Vostok.ZooKeeper.Client.Operations;
+using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client
@@ -39,10 +41,37 @@ namespace Vostok.ZooKeeper.Client
 
         public long SessionId => clientHolder.SessionId;
 
+        public byte[] SessionPassword => clientHolder.SessionPassword;
+
         /// <inheritdoc />
         public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
-            return await PerformOperation(new CreateOperation(request));
+            // TODO(kungurtsev): namespace?
+
+            var result = await PerformOperation(new CreateOperation(request));
+            if (result.Status == ZooKeeperStatus.NodeNotFound)
+            {
+                var nodes = Helper.SplitPath(request.Path);
+                for (var take = 1; take < nodes.Length; take++)
+                {
+                    var path = "/" + string.Join("/", nodes.Take(take));
+                    var exists = await ExistsAsync(new ExistsRequest(path));
+
+                    if (!exists.IsSuccessful)
+                        return new CreateOperation(request).CreateUnsuccessfulResult(exists.Status, exists.Exception);
+
+                    if (exists.Exists)
+                        continue;
+
+                    result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent)));
+                    if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
+                        return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
+                }
+
+                result = await PerformOperation(new CreateOperation(request));
+            }
+
+            return result;
         }
 
         public Task<DeleteResult> DeleteAsync(DeleteRequest request)
