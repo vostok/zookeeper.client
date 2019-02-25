@@ -48,14 +48,14 @@ namespace Vostok.ZooKeeper.Client
         {
             // TODO(kungurtsev): namespace?
 
-            var result = await PerformOperation(new CreateOperation(request));
+            var result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
             if (result.Status == ZooKeeperStatus.NodeNotFound)
             {
                 var nodes = Helper.SplitPath(request.Path);
                 for (var take = 1; take < nodes.Length; take++)
                 {
                     var path = "/" + string.Join("/", nodes.Take(take));
-                    var exists = await ExistsAsync(new ExistsRequest(path));
+                    var exists = await ExistsAsync(new ExistsRequest(path)).ConfigureAwait(false);
 
                     if (!exists.IsSuccessful)
                         return new CreateOperation(request).CreateUnsuccessfulResult(exists.Status, exists.Exception);
@@ -63,12 +63,12 @@ namespace Vostok.ZooKeeper.Client
                     if (exists.Exists)
                         continue;
 
-                    result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent)));
+                    result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
                     if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
                         return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
                 }
 
-                result = await PerformOperation(new CreateOperation(request));
+                result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
             }
 
             return result;
