@@ -234,7 +234,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task SetData_should_modify_current_version()
         {
-            var path = "/set_data_with_version";
+            var path = "/set_data_with_current_version";
 
             (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
 
@@ -254,7 +254,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task SetData_should_modify_any_version()
         {
-            var path = "/set_data_with_version";
+            var path = "/set_data_with_any_version";
 
             (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
 
