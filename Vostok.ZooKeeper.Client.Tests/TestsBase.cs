@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
+using Vostok.Commons.Helpers.Observable;
 using Vostok.Commons.Testing;
 using Vostok.Commons.Testing.Observable;
 using Vostok.Logging.Abstractions;
@@ -70,7 +71,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var sessionId = client.getSessionId();
             var sessionPassword = client.getSessionPasswd();
 
-            await KillSession(connectionString, sessionId, sessionPassword);
+            await KillSession(connectionString, sessionId, sessionPassword, holder.OnConnectionStateChanged);
         }
 
         protected static async Task KillSession(ZooKeeperClient client, string connectionString)
@@ -81,19 +82,21 @@ namespace Vostok.ZooKeeper.Client.Tests
             var sessionId = client.SessionId;
             var sessionPassword = client.SessionPassword;
 
-            await KillSession(connectionString, sessionId, sessionPassword);
+            await KillSession(connectionString, sessionId, sessionPassword, client.OnConnectionStateChanged);
         }
 
-        private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword)
+        private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword, IObservable<ConnectionState> onConnectionStateChanged)
         {
             var zooKeeper = new ZooKeeperNetExClient(connectionString, 5000, null, sessionId, sessionPassword);
+            var observer = new TestObserver<ConnectionState>();
+            onConnectionStateChanged.Subscribe(observer);
 
             try
             {
                 var watch = Stopwatch.StartNew();
                 while (watch.Elapsed < DefaultTimeout)
                 {
-                    if (zooKeeper.getState().Equals(ZooKeeperNetExClient.States.CONNECTED))
+                    if (observer.Values.Contains(ConnectionState.Disconnected))
                     {
                         return;
                     }
