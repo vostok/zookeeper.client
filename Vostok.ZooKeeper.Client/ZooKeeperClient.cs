@@ -49,27 +49,27 @@ namespace Vostok.ZooKeeper.Client
             // TODO(kungurtsev): namespace?
 
             var result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
-            if (result.Status == ZooKeeperStatus.NodeNotFound)
+            if (result.Status != ZooKeeperStatus.NodeNotFound)
+                return result;
+
+            var nodes = Helper.SplitPath(request.Path);
+            for (var take = 1; take < nodes.Length; take++)
             {
-                var nodes = Helper.SplitPath(request.Path);
-                for (var take = 1; take < nodes.Length; take++)
-                {
-                    var path = "/" + string.Join("/", nodes.Take(take));
-                    var exists = await ExistsAsync(new ExistsRequest(path)).ConfigureAwait(false);
+                var path = "/" + string.Join("/", nodes.Take(take));
+                var exists = await ExistsAsync(new ExistsRequest(path)).ConfigureAwait(false);
 
-                    if (!exists.IsSuccessful)
-                        return new CreateOperation(request).CreateUnsuccessfulResult(exists.Status, exists.Exception);
+                if (!exists.IsSuccessful)
+                    return new CreateOperation(request).CreateUnsuccessfulResult(exists.Status, exists.Exception);
 
-                    if (exists.Exists)
-                        continue;
+                if (exists.Exists)
+                    continue;
 
-                    result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
-                    if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
-                        return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
-                }
-
-                result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
+                result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
+                if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
+                    return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
             }
+
+            result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
 
             return result;
         }
@@ -100,12 +100,19 @@ namespace Vostok.ZooKeeper.Client
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
         {
-            var data = await (await clientHolder.GetConnectedClient().ConfigureAwait(false)).getDataAsync(request.Path).ConfigureAwait(false);
-            return new GetDataResult(ZooKeeperStatus.Ok, request.Path, data.Data, data.Stat.FromZooKeeperStat());
+            var result = await PerformOperation(new GetDataOperation(request)).ConfigureAwait(false);
+            return result;
         }
 
+        /// <summary>
+        /// <para>Dispose this client object.</para>
+        /// <para>Once the client is closed, its session becomes invalid.</para>
+        /// <para>All the ephemeral nodes in the ZooKeeper server associated with the session will be removed.</para>
+        /// <para>The watches left on nodes will be triggered.</para>
+        /// </summary>
         public void Dispose()
         {
             log.Debug("Disposing client.");
@@ -118,13 +125,15 @@ namespace Vostok.ZooKeeper.Client
         {
             log.Debug($"Trying to {operation.Request}.");
             
-            var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
-            // TODO(kungurtsev): null client?
-
             TResult result;
             try
             {
-                result = await operation.Execute(client).ConfigureAwait(false);
+                var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
+
+                if (client == null)
+                    result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.NotConnected, null);
+                else
+                    result = await operation.Execute(client).ConfigureAwait(false);
             }
             catch (KeeperException e)
             {

@@ -26,6 +26,16 @@ namespace Vostok.ZooKeeper.Client.Tests
             client.Dispose();
         }
 
+        [Test]
+        public async Task Should_return_NotConnected()
+        {
+            ensemble.Stop();
+            WaitForDisconectedState(client);
+            var result = await client.CreateAsync(new CreateRequest("/return_connection_loss", CreateMode.Persistent));
+
+            result.Status.Should().Be(ZooKeeperStatus.NotConnected);
+        }
+
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
@@ -108,8 +118,6 @@ namespace Vostok.ZooKeeper.Client.Tests
             var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
             var createResult = await client.CreateAsync(new CreateRequest($"/create_with_data_{size}_{createMode}", createMode) { Data = data });
             createResult.EnsureSuccess();
-
-            // TODO(kungurtsev): check data
         }
 
         [Test]
@@ -152,6 +160,63 @@ namespace Vostok.ZooKeeper.Client.Tests
             createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}/child", childCreateMode));
             ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
             createResult.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralsAreNotAllowed);
+        }
+
+        [Test, Combinatorial]
+        public async Task GetData_should_return_saved_data(
+            [Values(0, 1, 10, 1024, 1024 * 10, 1024 * 100, Helper.DataSizeLimit)] int size,
+            [Values(CreateMode.Persistent, CreateMode.Ephemeral)] CreateMode createMode)
+        {
+            var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
+            var path = $"/get_saved_data_{size}_{createMode}";
+
+            var createResult = await client.CreateAsync(new CreateRequest(path, createMode) { Data = data });
+            createResult.EnsureSuccess();
+
+            var result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeEquivalentTo(data, options => options.WithStrictOrdering());
+        }
+
+        [Test]
+        public async Task GetData_should_return_modified_data()
+        {
+            var path = "/get_modified_data";
+
+            var bytes1 = new byte[]{0, 1, 2, 3};
+            var bytes2 = new byte[]{3, 2, 1};
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = bytes1});
+            createResult.EnsureSuccess();
+
+            var result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeEquivalentTo(bytes1, options => options.WithStrictOrdering());
+            result.Stat.DataLength.Should().Be(4);
+            result.Stat.Version.Should().Be(0);
+
+            await client.SetDataAsync(new SetDataRequest(path, bytes2));
+            result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeEquivalentTo(bytes2, options => options.WithStrictOrdering());
+            result.Stat.DataLength.Should().Be(3);
+            result.Stat.Version.Should().Be(1);
+        }
+
+        [Test]
+        public async Task GetData_should_return_NodeNotFound()
+        {
+            var result = await client.GetDataAsync(new GetDataRequest("/get_unexisting_node"));
+
+            ((Action)(() => result.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+            result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+        }
+
+        [TestCase("without_slash_at_the_beggingig")]
+        [TestCase("/with_extra_slash_at_the_ending/")]
+        public async Task GetData_should_return_BadArguments_for_bad_path(string path)
+        {
+            var createResult = await client.GetDataAsync(new GetDataRequest(path));
+            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            createResult.Exception.Should().BeOfType<ArgumentException>();
+
+            ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
