@@ -5,6 +5,7 @@ using org.apache.zookeeper.common;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Operations
@@ -18,8 +19,8 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<CreateResult> Execute(ZooKeeperNetExClient client)
         {
-            if (!Helper.ValidateDataSize(Request.Data))
-                return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, Helper.DataSizeLimitExceededException(Request.Data));
+            if (!NodeHelper.ValidateDataSize(Request.Data))
+                return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, NodeHelper.DataSizeLimitExceededException(Request.Data));
 
             try
             {

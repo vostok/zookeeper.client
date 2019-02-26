@@ -6,6 +6,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
+using Vostok.ZooKeeper.Client.Helpers;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -112,7 +113,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [Test, Combinatorial]
         public async Task Create_should_save_data(
-            [Values(0, 1, 10, 1024, 1024*10, 1024 * 100, Helper.DataSizeLimit)] int size,
+            [Values(0, 1, 10, 1024, 1024*10, 1024 * 100, NodeHelper.DataSizeLimit)] int size,
             [Values(CreateMode.Persistent, CreateMode.Ephemeral)] CreateMode createMode)
         {
             var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
@@ -123,7 +124,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Create_should_return_BadArguments_for_big_data()
         {
-            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[Helper.DataSizeLimit + 1]});
+            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[NodeHelper.DataSizeLimit + 1]});
             createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
             createResult.Exception.Should().BeOfType<ArgumentException>();
         }
@@ -164,7 +165,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [Test, Combinatorial]
         public async Task GetData_should_return_saved_data(
-            [Values(0, 1, 10, 1024, 1024 * 10, 1024 * 100, Helper.DataSizeLimit)] int size,
+            [Values(0, 1, 10, 1024, 1024 * 10, 1024 * 100, NodeHelper.DataSizeLimit)] int size,
             [Values(CreateMode.Persistent, CreateMode.Ephemeral)] CreateMode createMode)
         {
             var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();

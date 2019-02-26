@@ -9,6 +9,7 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Operations;
 using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
@@ -52,7 +53,7 @@ namespace Vostok.ZooKeeper.Client
             if (result.Status != ZooKeeperStatus.NodeNotFound)
                 return result;
 
-            var nodes = Helper.SplitPath(request.Path);
+            var nodes = PathHelper.SplitPath(request.Path);
             for (var take = 1; take < nodes.Length; take++)
             {
                 var path = "/" + string.Join("/", nodes.Take(take));

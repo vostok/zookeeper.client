@@ -5,6 +5,7 @@ using org.apache.zookeeper;
 using Vostok.Commons.Helpers.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 using Waiter = System.Threading.Tasks.TaskCompletionSource<org.apache.zookeeper.ZooKeeper>;
 
@@ -25,7 +26,7 @@ namespace Vostok.ZooKeeper.Client
         {
             this.log = log;
             this.setup = setup;
-            Helper.InjectLogging(log);
+            LoggerHelper.InjectLogging(log);
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>();
