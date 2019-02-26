@@ -96,11 +96,21 @@ namespace Vostok.ZooKeeper.Client.Tests
                 var watch = Stopwatch.StartNew();
                 while (watch.Elapsed < DefaultTimeout)
                 {
-                    if (observer.Values.Contains(ConnectionState.Disconnected))
+                    if (zooKeeper.getState().Equals(ZooKeeperNetExClient.States.CONNECTED))
                     {
                         return;
                     }
+                    Thread.Sleep(100);
+                }
 
+                await zooKeeper.closeAsync();
+
+                while (watch.Elapsed < DefaultTimeout)
+                {
+                    if (observer.Values.Contains(ConnectionState.Expired))
+                    {
+                        return;
+                    }
                     Thread.Sleep(100);
                 }
 
