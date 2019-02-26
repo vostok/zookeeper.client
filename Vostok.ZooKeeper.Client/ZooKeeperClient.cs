@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -12,12 +11,12 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Operations;
 using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
-using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client
 {
     /// <summary>
-    /// Represents a ZooKeeper client.
+    /// <para>Represents a ZooKeeper client.</para>
+    /// <para>This client is automatically reconnects to ZooKeeper cluster.</para>
     /// </summary>
     [PublicAPI]
     public class ZooKeeperClient : IZooKeeperClient, IDisposable
@@ -26,6 +25,9 @@ namespace Vostok.ZooKeeper.Client
         private readonly ZooKeeperClientSetup setup;
         private readonly ClientHolder clientHolder;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="setup" />.
+        /// </summary>
         public ZooKeeperClient(ILog log, ZooKeeperClientSetup setup)
         {
             this.setup = setup;
@@ -80,9 +82,10 @@ namespace Vostok.ZooKeeper.Client
             throw new NotImplementedException();
         }
 
-        public Task<SetDataResult> SetDataAsync(SetDataRequest request)
+        /// <inheritdoc />
+        public async Task<SetDataResult> SetDataAsync(SetDataRequest request)
         {
-            throw new NotImplementedException();
+            return await PerformOperation(new SetDataOperation(request)).ConfigureAwait(false);
         }
 
         public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
@@ -104,8 +107,7 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
         {
-            var result = await PerformOperation(new GetDataOperation(request)).ConfigureAwait(false);
-            return result;
+            return await PerformOperation(new GetDataOperation(request)).ConfigureAwait(false);
         }
 
         /// <summary>

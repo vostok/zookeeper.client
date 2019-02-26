@@ -47,7 +47,7 @@ namespace Vostok.ZooKeeper.Client
                 case KeeperException.Code.NONODE:
                     return ZooKeeperStatus.NodeNotFound;
                 case KeeperException.Code.BADVERSION:
-                    return ZooKeeperStatus.VersionConflict;
+                    return ZooKeeperStatus.VersionsMismatch;
                 case KeeperException.Code.NOCHILDRENFOREPHEMERALS:
                     return ZooKeeperStatus.ChildrenForEphemeralsAreNotAllowed;
                 case KeeperException.Code.NODEEXISTS:

@@ -37,6 +37,17 @@ namespace Vostok.ZooKeeper.Client.Tests
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
         }
 
+        [Test]
+        public async Task Should_reconnect()
+        {
+            ensemble.Stop();
+            WaitForDisconectedState(client);
+            ensemble.Start();
+
+            var result = await client.CreateAsync(new CreateRequest("/reconnect", CreateMode.Persistent));
+            result.EnsureSuccess();
+        }
+
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
@@ -182,9 +193,9 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task GetData_should_return_modified_data()
         {
             var path = "/get_modified_data";
-
             var bytes1 = new byte[]{0, 1, 2, 3};
             var bytes2 = new byte[]{3, 2, 1};
+
             var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = bytes1});
             createResult.EnsureSuccess();
 
@@ -218,6 +229,57 @@ namespace Vostok.ZooKeeper.Client.Tests
             createResult.Exception.Should().BeOfType<ArgumentException>();
 
             ((Action)(() => createResult.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+        }
+
+        [Test]
+        public async Task SetData_should_modify_current_version()
+        {
+            var path = "/set_data_with_version";
+
+            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+
+            for (var version = 0; version < 3; version++)
+            {
+                var setResult = await client.SetDataAsync(new SetDataRequest(path, new[] {(byte)(version + 1)}) {Version = version});
+                setResult.EnsureSuccess();
+
+                setResult.Stat.Version.Should().Be(version + 1);
+            }
+
+            var result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeEquivalentTo(new[] { (byte)3 }, options => options.WithStrictOrdering());
+            result.Stat.Version.Should().Be(3);
+        }
+
+        [Test]
+        public async Task SetData_should_modify_any_version()
+        {
+            var path = "/set_data_with_version";
+
+            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+
+            (await client.SetDataAsync(new SetDataRequest(path, null) { Version = -1 })).EnsureSuccess();
+        }
+
+        [Test]
+        public async Task SetData_should_return_VersionsMismatch()
+        {
+            var path = "/set_data_vesions_mismatch";
+            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+
+            var result = await client.SetDataAsync(new SetDataRequest(path, null) {Version = 42});
+
+            ((Action)(() => result.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+            result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
+        }
+
+        [Test]
+        public async Task SetData_should_return_NodeNotFound()
+        {
+            var result = await client.SetDataAsync(new SetDataRequest("/set_data_unexisting_node", null));
+
+            ((Action)(() => result.EnsureSuccess())).Should().Throw<ZooKeeperException>();
+            result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
