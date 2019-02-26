@@ -77,9 +77,10 @@ namespace Vostok.ZooKeeper.Client
             return result;
         }
 
+        /// <inheritdoc />
         public Task<DeleteResult> DeleteAsync(DeleteRequest request)
         {
-            throw new NotImplementedException();
+            return PerformOperation(new DeleteOperation(request));
         }
 
         /// <inheritdoc />
@@ -88,10 +89,10 @@ namespace Vostok.ZooKeeper.Client
             return await PerformOperation(new SetDataOperation(request)).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
         {
-            var data = await(await clientHolder.GetConnectedClient().ConfigureAwait(false)).existsAsync(request.Path).ConfigureAwait(false);
-            return new ExistsResult(ZooKeeperStatus.Ok, request.Path, data.FromZooKeeperStat());
+            return await PerformOperation(new ExistsOperation(request));
         }
 
         public Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
