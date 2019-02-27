@@ -80,7 +80,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 $"/create_nested_{mode}/a/b/c_first/d/e_first",
                 $"/create_nested_{mode}/a/b/c_first/d/e_second",
-                $"/create_nested_{mode}/a/b/c_second"
+                $"/create_nested_{mode}/a/b/c_second",
+                $"/create_nested_{mode}/a/b/c_second/c_child"
             };
 
             foreach (var path in paths)
@@ -154,8 +155,19 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
             createResult.EnsureSuccess();
-            createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
 
+            createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
+            createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
+        }
+
+        [Test]
+        public async Task Create_should_return_NodeAlreadyExists_for_nested_node()
+        {
+            var path = "/create_same_node_twice_nested/a/b/c/d";
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+            createResult.EnsureSuccess();
+
+            createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
             createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
         }
 
@@ -320,10 +332,10 @@ namespace Vostok.ZooKeeper.Client.Tests
                 (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
             }
 
-            (await client.DeleteAsync(new DeleteRequest("/root/a"))).EnsureSuccess();
+            (await client.DeleteAsync(new DeleteRequest("/root/a") {DeleteChildrenIfNeeded = true})).EnsureSuccess();
 
             await VerifyNodeDeleted(client, "/root/a");
-            foreach (var path in paths)
+            foreach (var path in paths.Where(p => p.StartsWith("/root/a")))
             {
                 await VerifyNodeDeleted(client, path);
             }
@@ -335,6 +347,14 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Delete_should_return_NodeNotFound()
         {
             var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node"));
+
+            result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+        }
+
+        [Test]
+        public async Task Delete_should_return_NodeNotFound_with_delete_children_flag()
+        {
+            var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node") {DeleteChildrenIfNeeded = true});
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
@@ -363,6 +383,59 @@ namespace Vostok.ZooKeeper.Client.Tests
             var result = await client.DeleteAsync(new DeleteRequest(path) {Version = 42});
 
             result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
+
+            await VerifyNodeCreated(client, path);
+        }
+
+        [Test]
+        public async Task Delete_should_return_VersionsMismatch_with_delete_children_flag()
+        {
+            var path = "/delete_version_mismatch_with_flag";
+
+            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+
+            var result = await client.DeleteAsync(new DeleteRequest(path) { Version = 42, DeleteChildrenIfNeeded = true });
+
+            result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
+
+            await VerifyNodeCreated(client, path);
+        }
+
+        [Test]
+        public async Task Delete_should_return_VersionsMismatch_with_delete_children_flag_nested()
+        {
+            var path = "/delete_version_mismatch_with_flag/nested";
+
+            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+
+            var result = await client.DeleteAsync(new DeleteRequest(path) { Version = 42, DeleteChildrenIfNeeded = true });
+
+            result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
+
+            await VerifyNodeCreated(client, path);
+        }
+
+        [Test]
+        public async Task GetChildren_should_return_NodeNotFound()
+        {
+            var result = await client.GetChildrenAsync(new GetChildrenRequest("/get_children_unexisting_node"));
+
+            result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+        }
+
+        [Test]
+        public async Task GetChildren_should_return_names_with_parent_stat()
+        {
+            var paths = new List<string> { "/get_children/a/b/c", "/get_children/a/b/d", "/get_children/a/e", "/get_children/b" };
+
+            foreach (var path in paths)
+            {
+                (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            }
+
+            var result = await client.GetChildrenAsync(new GetChildrenRequest("/get_children/a"));
+            result.ChildrenNames.Should().BeEquivalentTo("b", "e");
+            result.Stat.ChildrenVersion.Should().Be(2);
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)

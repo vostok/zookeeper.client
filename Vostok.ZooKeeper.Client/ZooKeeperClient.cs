@@ -78,9 +78,37 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <inheritdoc />
-        public Task<DeleteResult> DeleteAsync(DeleteRequest request)
+        public async Task<DeleteResult> DeleteAsync(DeleteRequest request)
         {
-            return PerformOperation(new DeleteOperation(request));
+            var result = await PerformOperation(new DeleteOperation(request)).ConfigureAwait(false);
+            if (result.Status != ZooKeeperStatus.NodeHasChildren || !request.DeleteChildrenIfNeeded)
+                return result;
+
+            return await DeleteWithChildren(request);
+        }
+
+        private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
+        {
+            while (true)
+            {
+                var children = await GetChildrenAsync(new GetChildrenRequest(request.Path));
+                if (!children.IsSuccessful)
+                {
+                    // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
+                    return new DeleteResult(children.Status, request.Path);
+                }
+
+                foreach (var name in children.ChildrenNames)
+                {
+                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}"));
+                }
+
+                var result = await PerformOperation(new DeleteOperation(request)).ConfigureAwait(false);
+                if (result.Status != ZooKeeperStatus.NodeHasChildren)
+                    return result;
+
+                // Someone has created a new child since we checked ... delete again.
+            }
         }
 
         /// <inheritdoc />
@@ -92,17 +120,13 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
         {
-            return await PerformOperation(new ExistsOperation(request));
+            return await PerformOperation(new ExistsOperation(request)).ConfigureAwait(false);
         }
 
-        public Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
+        /// <inheritdoc />
+        public async Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<GetChildrenWithStatResult> GetChildrenWithStatAsync(GetChildrenRequest request)
-        {
-            throw new NotImplementedException();
+            return await PerformOperation(new GetChildrenOperation(request)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
