@@ -38,19 +38,21 @@ namespace Vostok.ZooKeeper.Client
             clientHolder = new ClientHolder(log, setup);
         }
 
+        /// <inheritdoc />
         public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
 
+        /// <inheritdoc />
         public ConnectionState ConnectionState => clientHolder.ConnectionState;
 
+        /// <inheritdoc />
         public long SessionId => clientHolder.SessionId;
 
+        /// <inheritdoc />
         public byte[] SessionPassword => clientHolder.SessionPassword;
 
         /// <inheritdoc />
         public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
-            // TODO(kungurtsev): namespace?
-
             var result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
             if (result.Status != ZooKeeperStatus.NodeNotFound)
                 return result;

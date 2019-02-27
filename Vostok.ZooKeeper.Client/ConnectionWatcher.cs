@@ -22,12 +22,10 @@ namespace Vostok.ZooKeeper.Client
             if (Disposed)
                 return Task.CompletedTask;
 
-            return Task.Run(
-                () =>
-                {
-                    log.Debug($"Recieved event {@event}");
-                    action(@event, this);
-                });
+            log.Debug($"Recieved event {@event}");
+            action(@event, this);
+
+            return Task.CompletedTask;
         }
 
         public void Dispose()
