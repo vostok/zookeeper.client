@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
+using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
 
@@ -71,7 +72,7 @@ namespace Vostok.ZooKeeper.Client
             switch (type)
             {
                 case Watcher.Event.EventType.None:
-                    return NodeChangedEventType.ClientDisconected;
+                    return NodeChangedEventType.ConnectionStateChanged;
                 case Watcher.Event.EventType.NodeCreated:
                     return NodeChangedEventType.Created;
                 case Watcher.Event.EventType.NodeDeleted:
@@ -85,21 +86,23 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        public static Watcher ToZooKeeperWatcher(this INodeWatcher watcher) => watcher == null ? null : new ZooKeeperWatcher(watcher);
+        public static ConnectionState FromZooKeeperState(this Watcher.Event.KeeperState state)
+        {
+            switch (state)
+            {
+                case Watcher.Event.KeeperState.SyncConnected:
+                    return ConnectionState.Connected;
+                case Watcher.Event.KeeperState.ConnectedReadOnly:
+                    return ConnectionState.ConnectedReadonly;
+                case Watcher.Event.KeeperState.Expired:
+                    return ConnectionState.Expired;
+                case Watcher.Event.KeeperState.Disconnected:
+                case Watcher.Event.KeeperState.AuthFailed:
+                default:
+                    return ConnectionState.Disconnected;
+            }
+        }
 
         public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSetup setup) => (int)setup.Timeout.TotalMilliseconds;
-
-        private class ZooKeeperWatcher : Watcher
-        {
-            private readonly INodeWatcher watcher;
-
-            public ZooKeeperWatcher(INodeWatcher watcher)
-            {
-                this.watcher = watcher;
-            }
-
-            public override Task process(WatchedEvent @event) =>
-                watcher.ProcessEvent(@event.get_Type().FromZooKeeperEventType(), @event.getPath());
-        }
     }
 }

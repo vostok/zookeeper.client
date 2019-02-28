@@ -82,6 +82,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected static async Task KillSession(ZooKeeperClient client, string connectionString)
         {
+            Log.Info("KILL BEGIN");
             if (client.ConnectionState != ConnectionState.Connected)
                 return;
 
@@ -89,6 +90,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var sessionPassword = client.SessionPassword;
 
             await KillSession(connectionString, sessionId, sessionPassword, client.OnConnectionStateChanged);
+            Log.Info("KILL END");
         }
 
         private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword, IObservable<ConnectionState> onConnectionStateChanged)
@@ -104,7 +106,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 {
                     if (zooKeeper.getState().Equals(ZooKeeperNetExClient.States.CONNECTED))
                     {
-                        return;
+                        break;
                     }
                     Thread.Sleep(100);
                 }

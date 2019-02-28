@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
+using Vostok.ZooKeeper.Client.Abstractions.Model;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -9,9 +10,9 @@ namespace Vostok.ZooKeeper.Client
     {
         public bool Disposed;
         private readonly ILog log;
-        private readonly Action<WatchedEvent, ConnectionWatcher> action;
+        private readonly Action<ConnectionState, ConnectionWatcher> action;
 
-        public ConnectionWatcher(ILog log, Action<WatchedEvent, ConnectionWatcher> action)
+        public ConnectionWatcher(ILog log, Action<ConnectionState, ConnectionWatcher> action)
         {
             this.log = log;
             this.action = action;
@@ -23,7 +24,11 @@ namespace Vostok.ZooKeeper.Client
                 return Task.CompletedTask;
 
             log.Debug($"Recieved event {@event}");
-            action(@event, this);
+
+            if (@event.get_Type() != Event.EventType.None)
+                return Task.CompletedTask;
+
+            action(@event.getState().FromZooKeeperState(), this);
 
             return Task.CompletedTask;
         }

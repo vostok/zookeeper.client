@@ -37,7 +37,7 @@ namespace Vostok.ZooKeeper.Client
             this.log = log;
 
             clientHolder = new ClientHolder(log, setup);
-            watcherWrapper = new WatcherWrapper();
+            watcherWrapper = new WatcherWrapper(log);
         }
 
         /// <inheritdoc />

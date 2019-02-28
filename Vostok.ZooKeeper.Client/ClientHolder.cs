@@ -90,23 +90,6 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        private static ConnectionState GetNewConnectionState(WatchedEvent @event)
-        {
-            switch (@event.getState())
-            {
-                case Watcher.Event.KeeperState.SyncConnected:
-                    return ConnectionState.Connected;
-                case Watcher.Event.KeeperState.ConnectedReadOnly:
-                    return ConnectionState.ConnectedReadonly;
-                case Watcher.Event.KeeperState.Expired:
-                    return ConnectionState.Expired;
-                case Watcher.Event.KeeperState.AuthFailed:
-                case Watcher.Event.KeeperState.Disconnected:
-                default:
-                    return ConnectionState.Disconnected;
-            }
-        }
-
         private async Task<bool> WaitWithTimeout(Waiter localWaiter)
         {
             using (var cts = new CancellationTokenSource())
@@ -160,18 +143,14 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        private void ProcessEvent(WatchedEvent @event, ConnectionWatcher eventFrom)
+        private void ProcessEvent(ConnectionState newConnectionState, ConnectionWatcher eventFrom)
         {
             lock (sync)
             {
                 if (disposed || eventFrom.Disposed)
                     return;
 
-                if (@event.get_Type() != Watcher.Event.EventType.None)
-                    return;
-
                 var oldConnectionState = ConnectionState;
-                var newConnectionState = GetNewConnectionState(@event);
                 log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}.");
                 if (newConnectionState == oldConnectionState)
                     return;
