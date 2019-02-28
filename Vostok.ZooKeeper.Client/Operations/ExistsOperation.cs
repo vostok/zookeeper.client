@@ -8,14 +8,17 @@ namespace Vostok.ZooKeeper.Client.Operations
 {
     internal class ExistsOperation : BaseOperation<ExistsRequest, ExistsResult>
     {
-        public ExistsOperation(ExistsRequest request)
+        private readonly WatcherWrapper wrapper;
+
+        public ExistsOperation(ExistsRequest request, WatcherWrapper wrapper)
             : base(request)
         {
+            this.wrapper = wrapper;
         }
 
         public override async Task<ExistsResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.existsAsync(Request.Path).ConfigureAwait(false);
+            var result = await client.existsAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
 
             return new ExistsResult(ZooKeeperStatus.Ok, Request.Path, result.FromZooKeeperStat());
         }

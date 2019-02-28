@@ -481,13 +481,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
         }
-
-        [Test]
-        public async Task Dispose_should_trigger_watchers()
-        {
-            // TODO(kungurtsev): implement
-        }
-
+        
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
         {
             var node = await client.GetDataAsync(new GetDataRequest(path));

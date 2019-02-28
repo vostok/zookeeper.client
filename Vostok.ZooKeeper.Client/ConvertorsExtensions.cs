@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
@@ -65,6 +66,40 @@ namespace Vostok.ZooKeeper.Client
             return ZooKeeperStatus.UnknownError;
         }
 
+        public static NodeChangedEventType FromZooKeeperEventType(this Watcher.Event.EventType type)
+        {
+            switch (type)
+            {
+                case Watcher.Event.EventType.None:
+                    return NodeChangedEventType.ClientDisconected;
+                case Watcher.Event.EventType.NodeCreated:
+                    return NodeChangedEventType.Created;
+                case Watcher.Event.EventType.NodeDeleted:
+                    return NodeChangedEventType.Deleted;
+                case Watcher.Event.EventType.NodeDataChanged:
+                    return NodeChangedEventType.DataChanged;
+                case Watcher.Event.EventType.NodeChildrenChanged:
+                    return NodeChangedEventType.ChildrenChanged;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        public static Watcher ToZooKeeperWatcher(this INodeWatcher watcher) => watcher == null ? null : new ZooKeeperWatcher(watcher);
+
         public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSetup setup) => (int)setup.Timeout.TotalMilliseconds;
+
+        private class ZooKeeperWatcher : Watcher
+        {
+            private readonly INodeWatcher watcher;
+
+            public ZooKeeperWatcher(INodeWatcher watcher)
+            {
+                this.watcher = watcher;
+            }
+
+            public override Task process(WatchedEvent @event) =>
+                watcher.ProcessEvent(@event.get_Type().FromZooKeeperEventType(), @event.getPath());
+        }
     }
 }

@@ -8,14 +8,17 @@ namespace Vostok.ZooKeeper.Client.Operations
 {
     internal class GetChildrenOperation : BaseOperation<GetChildrenRequest, GetChildrenResult>
     {
-        public GetChildrenOperation(GetChildrenRequest request)
+        private readonly WatcherWrapper wrapper;
+
+        public GetChildrenOperation(GetChildrenRequest request, WatcherWrapper wrapper)
             : base(request)
         {
+            this.wrapper = wrapper;
         }
 
         public override async Task<GetChildrenResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.getChildrenAsync(Request.Path).ConfigureAwait(false);
+            var result = await client.getChildrenAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
 
             return new GetChildrenResult(ZooKeeperStatus.Ok, Request.Path, result.Children, result.Stat.FromZooKeeperStat());
         }

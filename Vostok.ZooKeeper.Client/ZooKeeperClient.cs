@@ -24,6 +24,7 @@ namespace Vostok.ZooKeeper.Client
         private readonly ILog log;
         private readonly ZooKeeperClientSetup setup;
         private readonly ClientHolder clientHolder;
+        private readonly WatcherWrapper watcherWrapper;
 
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="setup" />.
@@ -36,6 +37,7 @@ namespace Vostok.ZooKeeper.Client
             this.log = log;
 
             clientHolder = new ClientHolder(log, setup);
+            watcherWrapper = new WatcherWrapper();
         }
 
         /// <inheritdoc />
@@ -122,19 +124,19 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
         {
-            return await ExecuteOperation(new ExistsOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new ExistsOperation(request, watcherWrapper)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
         {
-            return await ExecuteOperation(new GetChildrenOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new GetChildrenOperation(request, watcherWrapper)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
         {
-            return await ExecuteOperation(new GetDataOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new GetDataOperation(request, watcherWrapper)).ConfigureAwait(false);
         }
 
         /// <summary>
