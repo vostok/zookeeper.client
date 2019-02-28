@@ -86,14 +86,14 @@ namespace Vostok.ZooKeeper.Client
             if (result.Status != ZooKeeperStatus.NodeHasChildren || !request.DeleteChildrenIfNeeded)
                 return result;
 
-            return await DeleteWithChildren(request);
+            return await DeleteWithChildren(request).ConfigureAwait(false);
         }
 
         private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
         {
             while (true)
             {
-                var children = await GetChildrenAsync(new GetChildrenRequest(request.Path));
+                var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
                 if (!children.IsSuccessful)
                 {
                     // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
@@ -102,7 +102,7 @@ namespace Vostok.ZooKeeper.Client
 
                 foreach (var name in children.ChildrenNames)
                 {
-                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}"));
+                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}")).ConfigureAwait(false);
                 }
 
                 var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);

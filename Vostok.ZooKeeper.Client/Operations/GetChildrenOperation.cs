@@ -15,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<GetChildrenResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.getChildrenAsync(Request.Path);
+            var result = await client.getChildrenAsync(Request.Path).ConfigureAwait(false);
 
             return new GetChildrenResult(ZooKeeperStatus.Ok, Request.Path, result.Children, result.Stat.FromZooKeeperStat());
         }

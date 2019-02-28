@@ -15,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<DeleteResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            await client.deleteAsync(Request.Path, Request.Version);
+            await client.deleteAsync(Request.Path, Request.Version).ConfigureAwait(false);
             return new DeleteResult(ZooKeeperStatus.Ok, Request.Path);
         }
 

@@ -15,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<SetDataResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.setDataAsync(Request.Path, Request.Data, Request.Version);
+            var result = await client.setDataAsync(Request.Path, Request.Data, Request.Version).ConfigureAwait(false);
 
             return new SetDataResult(ZooKeeperStatus.Ok, Request.Path, result.FromZooKeeperStat());
         }

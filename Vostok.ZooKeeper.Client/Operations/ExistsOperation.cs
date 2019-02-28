@@ -15,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<ExistsResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.existsAsync(Request.Path);
+            var result = await client.existsAsync(Request.Path).ConfigureAwait(false);
 
             return new ExistsResult(ZooKeeperStatus.Ok, Request.Path, result.FromZooKeeperStat());
         }
