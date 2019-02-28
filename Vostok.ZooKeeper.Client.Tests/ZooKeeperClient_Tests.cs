@@ -48,6 +48,16 @@ namespace Vostok.ZooKeeper.Client.Tests
             result.EnsureSuccess();
         }
 
+        [Test]
+        public async Task SessionId_SessionPassword_ConnectionState_should_be_filled_after_connect()
+        {
+            (await client.ExistsAsync(new ExistsRequest("/path"))).EnsureSuccess();
+
+            client.ConnectionState.Should().Be(ConnectionState.Connected);
+            client.SessionId.Should().NotBe(0);
+            client.SessionPassword.Should().NotBeNullOrEmpty();
+        }
+
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
@@ -113,7 +123,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Create_should_create_sequential_node_with_shared_parent_counter()
         {
-            // When creating a znode you can also request that ZooKeeper append a monotonically increasing counter to the end of path.
+            // When creating a node you can also request that ZooKeeper append a monotonically increasing counter to the end of path.
             // This counter is unique to the parent znode.
 
             var createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/a", CreateMode.PersistentSequential));
@@ -436,6 +446,46 @@ namespace Vostok.ZooKeeper.Client.Tests
             var result = await client.GetChildrenAsync(new GetChildrenRequest("/get_children/a"));
             result.ChildrenNames.Should().BeEquivalentTo("b", "e");
             result.Stat.ChildrenVersion.Should().Be(2);
+        }
+
+        [Test]
+        public async Task Dispose_should_delete_ephemeral_nodes()
+        {
+            var path = "/dispose_ephemeral";
+
+            var disposedClient = GetClient();
+            (await disposedClient.CreateAsync(new CreateRequest(path, CreateMode.Ephemeral))).EnsureSuccess();
+            disposedClient.Dispose();
+
+            await VerifyNodeDeleted(GetClient(), path);
+        }
+
+        [Test]
+        public void Dispose_should_stop_client()
+        {
+            var disposedClient = GetClient();
+            disposedClient.Dispose();
+
+            disposedClient.ConnectionState.Should().Be(ConnectionState.Disconnected);
+            disposedClient.SessionId.Should().Be(0);
+            disposedClient.SessionPassword.Should().BeNull();
+        }
+
+        [Test]
+        public async Task Dispose_should_not_execute_operations()
+        {
+            var disposedClient = GetClient();
+            disposedClient.Dispose();
+
+            var result = await disposedClient.ExistsAsync(new ExistsRequest("/path"));
+
+            result.Status.Should().Be(ZooKeeperStatus.NotConnected);
+        }
+
+        [Test]
+        public async Task Dispose_should_trigger_watchers()
+        {
+            // TODO(kungurtsev): implement
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)

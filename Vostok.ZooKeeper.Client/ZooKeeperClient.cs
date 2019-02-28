@@ -53,7 +53,7 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
-            var result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
+            var result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
             if (result.Status != ZooKeeperStatus.NodeNotFound)
                 return result;
 
@@ -69,12 +69,12 @@ namespace Vostok.ZooKeeper.Client
                 if (exists.Exists)
                     continue;
 
-                result = await PerformOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
+                result = await ExecuteOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
                 if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
                     return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
             }
 
-            result = await PerformOperation(new CreateOperation(request)).ConfigureAwait(false);
+            result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
 
             return result;
         }
@@ -82,7 +82,7 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<DeleteResult> DeleteAsync(DeleteRequest request)
         {
-            var result = await PerformOperation(new DeleteOperation(request)).ConfigureAwait(false);
+            var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);
             if (result.Status != ZooKeeperStatus.NodeHasChildren || !request.DeleteChildrenIfNeeded)
                 return result;
 
@@ -105,7 +105,7 @@ namespace Vostok.ZooKeeper.Client
                     await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}"));
                 }
 
-                var result = await PerformOperation(new DeleteOperation(request)).ConfigureAwait(false);
+                var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);
                 if (result.Status != ZooKeeperStatus.NodeHasChildren)
                     return result;
 
@@ -116,25 +116,25 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public async Task<SetDataResult> SetDataAsync(SetDataRequest request)
         {
-            return await PerformOperation(new SetDataOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new SetDataOperation(request)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
         {
-            return await PerformOperation(new ExistsOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new ExistsOperation(request)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
         {
-            return await PerformOperation(new GetChildrenOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new GetChildrenOperation(request)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
         {
-            return await PerformOperation(new GetDataOperation(request)).ConfigureAwait(false);
+            return await ExecuteOperation(new GetDataOperation(request)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Vostok.ZooKeeper.Client
             clientHolder.Dispose();
         }
 
-        private async Task<TResult> PerformOperation<TRequest, TResult>(BaseOperation<TRequest, TResult> operation)
+        private async Task<TResult> ExecuteOperation<TRequest, TResult>(BaseOperation<TRequest, TResult> operation)
             where TRequest : ZooKeeperRequest
             where TResult : ZooKeeperResult
         {
