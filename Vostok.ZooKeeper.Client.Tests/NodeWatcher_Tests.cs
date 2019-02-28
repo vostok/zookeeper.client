@@ -89,14 +89,14 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void Exists_should_add_watch_triggered_by_ClientDisconected_dispose()
+        public void Exists_should_add_watch_not_triggered_by_ClientDisconected_dispose()
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
             var localClient = GetClient();
             localClient.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
             localClient.Dispose();
-            watcher.ShouldBeTriggeredBy(NodeChangedEventType.ClientDisconected, null);
+            watcher.ShouldNotBeTriggered();
         }
 
         [Test]
@@ -191,14 +191,14 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void GetData_should_add_watch_triggered_by_ClientDisconected_dispose()
+        public void GetData_should_add_watch_not_triggered_by_ClientDisconected_dispose()
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
             var localClient = GetClient();
             localClient.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
             localClient.Dispose();
-            watcher.ShouldBeTriggeredBy(NodeChangedEventType.ClientDisconected, null);
+            watcher.ShouldNotBeTriggered();
         }
 
         [Test]
@@ -323,14 +323,14 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void GetChildren_should_add_watch_triggered_by_ClientDisconected_dispose()
+        public void GetChildren_should_add_watch_not_triggered_by_ClientDisconected_dispose()
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
             var localClient = GetClient();
             localClient.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
             localClient.Dispose();
-            watcher.ShouldBeTriggeredBy(NodeChangedEventType.ClientDisconected, null);
+            watcher.ShouldNotBeTriggered();
         }
 
         [Test]
