@@ -335,7 +335,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             localClient.Exists(new ExistsRequest(path) {Watcher = watcher});
 
             Ensemble.Stop();
-            WaitForDisconectedState(client);
+            WaitForDisconectedState(localClient);
             Ensemble.Start();
 
             localClient.Delete(new DeleteRequest(path)).EnsureSuccess();
