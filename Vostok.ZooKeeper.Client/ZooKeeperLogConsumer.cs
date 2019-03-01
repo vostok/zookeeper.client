@@ -35,8 +35,6 @@ namespace Vostok.ZooKeeper.Client
                     case TraceLevel.Warning:
                         log.Warn(exception, message);
                         break;
-                    default:
-                        break;
                 }
             }
         }

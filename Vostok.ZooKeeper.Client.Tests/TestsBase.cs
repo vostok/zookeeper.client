@@ -18,8 +18,8 @@ namespace Vostok.ZooKeeper.Client.Tests
 {
     internal abstract class TestsBase
     {
-        protected static TimeSpan DefaultTimeout = 10.Seconds();
         protected static readonly ILog Log = new SynchronousConsoleLog();
+        protected static TimeSpan DefaultTimeout = 10.Seconds();
 
         protected ZooKeeperEnsemble Ensemble;
 
@@ -93,43 +93,6 @@ namespace Vostok.ZooKeeper.Client.Tests
             Log.Info("KILL END");
         }
 
-        private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword, IObservable<ConnectionState> onConnectionStateChanged)
-        {
-            var zooKeeper = new ZooKeeperNetExClient(connectionString, 5000, null, sessionId, sessionPassword);
-            var observer = new TestObserver<ConnectionState>();
-            onConnectionStateChanged.Subscribe(observer);
-
-            try
-            {
-                var watch = Stopwatch.StartNew();
-                while (watch.Elapsed < DefaultTimeout)
-                {
-                    if (zooKeeper.getState().Equals(ZooKeeperNetExClient.States.CONNECTED))
-                    {
-                        break;
-                    }
-                    Thread.Sleep(100);
-                }
-
-                await zooKeeper.closeAsync();
-
-                while (watch.Elapsed < DefaultTimeout)
-                {
-                    if (observer.Values.Contains(ConnectionState.Expired))
-                    {
-                        return;
-                    }
-                    Thread.Sleep(100);
-                }
-
-                throw new TimeoutException($"Expected to kill session within {DefaultTimeout}, but failed to do so.");
-            }
-            finally
-            {
-                await zooKeeper.closeAsync();
-            }
-        }
-
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
             var setup = new ZooKeeperClientSetup(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
@@ -147,6 +110,45 @@ namespace Vostok.ZooKeeper.Client.Tests
             var observer = new TestObserver<ConnectionState>();
             holder.OnConnectionStateChanged.Subscribe(observer);
             return observer;
+        }
+
+        private static async Task KillSession(string connectionString, long sessionId, byte[] sessionPassword, IObservable<ConnectionState> onConnectionStateChanged)
+        {
+            var zooKeeper = new ZooKeeperNetExClient(connectionString, 5000, null, sessionId, sessionPassword);
+            var observer = new TestObserver<ConnectionState>();
+            onConnectionStateChanged.Subscribe(observer);
+
+            try
+            {
+                var watch = Stopwatch.StartNew();
+                while (watch.Elapsed < DefaultTimeout)
+                {
+                    if (zooKeeper.getState().Equals(ZooKeeperNetExClient.States.CONNECTED))
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(100);
+                }
+
+                await zooKeeper.closeAsync();
+
+                while (watch.Elapsed < DefaultTimeout)
+                {
+                    if (observer.Values.Contains(ConnectionState.Expired))
+                    {
+                        return;
+                    }
+
+                    Thread.Sleep(100);
+                }
+
+                throw new TimeoutException($"Expected to kill session within {DefaultTimeout}, but failed to do so.");
+            }
+            finally
+            {
+                await zooKeeper.closeAsync();
+            }
         }
     }
 }

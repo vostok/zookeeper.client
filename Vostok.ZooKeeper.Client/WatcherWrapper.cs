@@ -7,7 +7,7 @@ namespace Vostok.ZooKeeper.Client
 {
     internal class WatcherWrapper
     {
-	    private readonly ConcurrentDictionary<INodeWatcher, Watcher> watcherWrappers = new ConcurrentDictionary<INodeWatcher, Watcher>();
+        private readonly ConcurrentDictionary<INodeWatcher, Watcher> watcherWrappers = new ConcurrentDictionary<INodeWatcher, Watcher>();
         private readonly ILog log;
 
         public WatcherWrapper(ILog log)

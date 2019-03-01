@@ -52,8 +52,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] {1,2,3})).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.DataChanged, path);
         }
 
@@ -62,7 +62,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
         }
@@ -72,7 +72,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/f", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
@@ -83,7 +83,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
             for (var times = 0; times < 5; times++)
-                client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+                client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
         }
@@ -94,7 +94,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/new";
             var watcher = new TestWatcher();
 
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path, CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Created, path);
 
@@ -108,14 +108,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/new";
             var watcher = new TestWatcher();
 
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path, CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Created, path);
 
-            client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.Created, path), 
+                (NodeChangedEventType.Created, path),
                 (NodeChangedEventType.Deleted, path));
         }
 
@@ -124,7 +124,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/new";
             var watcher = new TestWatcher();
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).Status.Should().Be(ZooKeeperStatus.NodeNotFound);
             client.Create(new CreateRequest(path, CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
@@ -134,8 +134,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 3 })).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.DataChanged, path);
         }
 
@@ -144,7 +144,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
         }
@@ -154,7 +154,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/f", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
@@ -165,7 +165,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
             for (var times = 0; times < 5; times++)
-                client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
+                client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
         }
@@ -176,11 +176,11 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
 
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 3 })).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.DataChanged, path);
 
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 4 })).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 4})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.DataChanged, path);
         }
 
@@ -190,14 +190,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
 
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 3 })).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.DataChanged, path);
 
-            client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 4 })).EnsureSuccess();
+            client.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 4})).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.DataChanged, path), 
+                (NodeChangedEventType.DataChanged, path),
                 (NodeChangedEventType.DataChanged, path));
         }
 
@@ -206,7 +206,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/new";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).Status.Should().Be(ZooKeeperStatus.NodeNotFound);
             client.Create(new CreateRequest(path, CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
@@ -216,8 +216,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 3 })).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path, new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
 
@@ -226,7 +226,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
         }
@@ -236,7 +236,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/f", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.ChildrenChanged, path);
         }
@@ -246,7 +246,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path + "/c")).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.ChildrenChanged, path);
         }
@@ -256,7 +256,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path + "/b/c")).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
@@ -266,18 +266,18 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
-            client.SetData(new SetDataRequest(path + "/c", new byte[] {1,2,3})).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
+            client.SetData(new SetDataRequest(path + "/c", new byte[] {1, 2, 3})).EnsureSuccess();
             watcher.ShouldNotBeTriggered();
         }
-        
+
         [Test]
         public void GetChildren_should_not_trigger_by_duplicated_events()
         {
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
             for (var times = 0; times < 5; times++)
-                client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+                client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path + "/c")).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.ChildrenChanged, path);
         }
@@ -288,7 +288,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
 
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/f", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.ChildrenChanged, path);
 
@@ -302,14 +302,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/b";
             var watcher = new TestWatcher();
 
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/f", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.ChildrenChanged, path);
 
-            client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
+            client.GetChildren(new GetChildrenRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Create(new CreateRequest(path + "/g", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.ChildrenChanged, path), 
+                (NodeChangedEventType.ChildrenChanged, path),
                 (NodeChangedEventType.ChildrenChanged, path));
         }
 
@@ -319,7 +319,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a";
             var watcher = new TestWatcher();
             var localClient = GetClient();
-            localClient.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
+            localClient.GetData(new GetDataRequest(path) {Watcher = watcher}).EnsureSuccess();
             localClient.Dispose();
             watcher.ShouldNotBeTriggered();
         }
@@ -351,7 +351,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var watcher = new TestWatcher();
             var localClient = GetClient();
             localClient.Create(new CreateRequest(path, createMode)).EnsureSuccess();
-            localClient.Exists(new ExistsRequest(path) { Watcher = watcher });
+            localClient.Exists(new ExistsRequest(path) {Watcher = watcher});
 
             KillSession(localClient, Ensemble.ConnectionString).GetAwaiter().GetResult();
 
@@ -366,10 +366,10 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private class TestWatcher : INodeWatcher
         {
+            public List<(NodeChangedEventType, string)> Values = new List<(NodeChangedEventType, string)>();
             private TimeSpan timeout = 1.Seconds();
             private object sync = new object();
-            public List<(NodeChangedEventType, string)> Values = new List<(NodeChangedEventType, string)>();
-            
+
             public Task ProcessEvent(NodeChangedEventType type, string path)
             {
                 lock (sync)

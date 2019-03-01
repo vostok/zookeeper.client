@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
+using org.apache.zookeeper.data;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
@@ -26,8 +27,8 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        public static NodeStat FromZooKeeperStat(this org.apache.zookeeper.data.Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
-        
+        public static NodeStat FromZooKeeperStat(this Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
+
         public static ZooKeeperStatus FromZooKeeperExcetion(this KeeperException exception)
         {
             switch (exception.getCode())

@@ -19,6 +19,6 @@ namespace Vostok.ZooKeeper.Client.Operations
             return new DeleteResult(ZooKeeperStatus.Ok, Request.Path);
         }
 
-        public override DeleteResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new DeleteResult(status, Request.Path) { Exception = exception };
+        public override DeleteResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new DeleteResult(status, Request.Path) {Exception = exception};
     }
 }

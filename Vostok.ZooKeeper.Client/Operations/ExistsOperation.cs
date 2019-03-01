@@ -23,6 +23,6 @@ namespace Vostok.ZooKeeper.Client.Operations
             return new ExistsResult(ZooKeeperStatus.Ok, Request.Path, result.FromZooKeeperStat());
         }
 
-        public override ExistsResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new ExistsResult(status, Request.Path, null) { Exception = exception };
+        public override ExistsResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new ExistsResult(status, Request.Path, null) {Exception = exception};
     }
 }

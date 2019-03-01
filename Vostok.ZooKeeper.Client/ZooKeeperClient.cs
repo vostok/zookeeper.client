@@ -91,30 +91,6 @@ namespace Vostok.ZooKeeper.Client
             return await DeleteWithChildren(request).ConfigureAwait(false);
         }
 
-        private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
-        {
-            while (true)
-            {
-                var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
-                if (!children.IsSuccessful)
-                {
-                    // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
-                    return new DeleteResult(children.Status, request.Path);
-                }
-
-                foreach (var name in children.ChildrenNames)
-                {
-                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}")).ConfigureAwait(false);
-                }
-
-                var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);
-                if (result.Status != ZooKeeperStatus.NodeHasChildren)
-                    return result;
-
-                // Someone has created a new child since we checked ... delete again.
-            }
-        }
-
         /// <inheritdoc />
         public async Task<SetDataResult> SetDataAsync(SetDataRequest request)
         {
@@ -151,12 +127,36 @@ namespace Vostok.ZooKeeper.Client
             clientHolder.Dispose();
         }
 
+        private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
+        {
+            while (true)
+            {
+                var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
+                if (!children.IsSuccessful)
+                {
+                    // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
+                    return new DeleteResult(children.Status, request.Path);
+                }
+
+                foreach (var name in children.ChildrenNames)
+                {
+                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}")).ConfigureAwait(false);
+                }
+
+                var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);
+                if (result.Status != ZooKeeperStatus.NodeHasChildren)
+                    return result;
+
+                // Someone has created a new child since we checked ... delete again.
+            }
+        }
+
         private async Task<TResult> ExecuteOperation<TRequest, TResult>(BaseOperation<TRequest, TResult> operation)
             where TRequest : ZooKeeperRequest
             where TResult : ZooKeeperResult
         {
             log.Debug($"Trying to {operation.Request}.");
-            
+
             TResult result;
             try
             {
