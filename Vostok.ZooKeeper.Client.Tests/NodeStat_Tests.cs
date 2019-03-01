@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
@@ -83,7 +82,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task DataLength_should_return_data_lengt()
         {
-            var result = await client.CreateAsync(new CreateRequest($"/data/a", CreateMode.Persistent));
+            var result = await client.CreateAsync(new CreateRequest("/data/a", CreateMode.Persistent));
 
             await client.SetDataAsync(new SetDataRequest(result.NewPath, null));
             (await GetNodeStat(result.NewPath)).DataLength.Should().Be(0);
