@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.LocalEnsemble;
-using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
