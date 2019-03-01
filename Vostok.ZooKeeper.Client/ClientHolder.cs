@@ -135,7 +135,7 @@ namespace Vostok.ZooKeeper.Client
 
                 connectionWatcher = new ConnectionWatcher(log, ProcessEvent);
                 client = new ZooKeeperNetExClient(
-                    setup.ToZooKeeperConnectionString(),
+                    setup.GetConnectionString(),
                     setup.ToZooKeeperConnectionTimeout(),
                     connectionWatcher);
 

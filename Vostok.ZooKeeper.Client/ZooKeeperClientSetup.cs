@@ -35,10 +35,5 @@ namespace Vostok.ZooKeeper.Client
         /// Session and connect timeout.
         /// </summary>
         public TimeSpan Timeout { get; set; } = 5.Seconds();
-
-        /// <summary>
-        /// Namespace for node pathes (used as path prefix for applications isolation).
-        /// </summary>
-        public string Namespace { get; set; }
     }
 }

@@ -27,15 +27,7 @@ namespace Vostok.ZooKeeper.Client
         }
 
         public static NodeStat FromZooKeeperStat(this org.apache.zookeeper.data.Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
-
-        public static string ToZooKeeperConnectionString(this ZooKeeperClientSetup setup)
-        {
-            var connectionString = setup.GetConnectionString();
-            if (!string.IsNullOrEmpty(setup.Namespace?.TrimStart('/')))
-                connectionString += "/" + setup.Namespace.TrimStart('/');
-            return connectionString;
-        }
-
+        
         public static ZooKeeperStatus FromZooKeeperExcetion(this KeeperException exception)
         {
             switch (exception.getCode())
