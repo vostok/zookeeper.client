@@ -4,7 +4,6 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
-using Vostok.Commons.Testing.Observable;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.LocalEnsemble;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;

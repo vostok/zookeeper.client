@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using org.apache.zookeeper;
 using org.apache.zookeeper.data;
-using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
 
