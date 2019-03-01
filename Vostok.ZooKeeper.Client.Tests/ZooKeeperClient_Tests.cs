@@ -30,7 +30,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Should_return_NotConnected()
         {
-            ensemble.Stop();
+            Ensemble.Stop();
             WaitForDisconectedState(client);
             var result = await client.CreateAsync(new CreateRequest("/return_connection_loss", CreateMode.Persistent));
 
@@ -40,9 +40,9 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Should_reconnect()
         {
-            ensemble.Stop();
+            Ensemble.Stop();
             WaitForDisconectedState(client);
-            ensemble.Start();
+            Ensemble.Start();
 
             var result = await client.CreateAsync(new CreateRequest("/reconnect", CreateMode.Persistent));
             result.EnsureSuccess();
@@ -74,7 +74,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             await VerifyNodeCreated(client, createResult.NewPath);
 
-            await KillSession(client, ensemble.ConnectionString);
+            await KillSession(client, Ensemble.ConnectionString);
 
             if (createMode.IsEphemeral())
                 await VerifyNodeDeleted(client, createResult.NewPath);

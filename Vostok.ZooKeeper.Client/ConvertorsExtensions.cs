@@ -71,8 +71,6 @@ namespace Vostok.ZooKeeper.Client
         {
             switch (type)
             {
-                case Watcher.Event.EventType.None:
-                    return NodeChangedEventType.ConnectionStateChanged;
                 case Watcher.Event.EventType.NodeCreated:
                     return NodeChangedEventType.Created;
                 case Watcher.Event.EventType.NodeDeleted:

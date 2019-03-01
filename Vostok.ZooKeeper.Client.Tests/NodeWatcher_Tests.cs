@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
-using Vostok.Commons.Testing;
-using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
@@ -117,8 +115,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             client.Exists(new ExistsRequest(path) { Watcher = watcher }).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.Created, ConnectionState.Connected, path), 
-                (NodeChangedEventType.Deleted, ConnectionState.Connected, path));
+                (NodeChangedEventType.Created, path), 
+                (NodeChangedEventType.Deleted, path));
         }
 
         [Test]
@@ -199,8 +197,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             client.GetData(new GetDataRequest(path) { Watcher = watcher }).EnsureSuccess();
             client.SetData(new SetDataRequest(path, new byte[] { 1, 2, 4 })).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.DataChanged, ConnectionState.Connected, path), 
-                (NodeChangedEventType.DataChanged, ConnectionState.Connected, path));
+                (NodeChangedEventType.DataChanged, path), 
+                (NodeChangedEventType.DataChanged, path));
         }
 
         [Test]
@@ -311,8 +309,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             client.GetChildren(new GetChildrenRequest(path) { Watcher = watcher }).EnsureSuccess();
             client.Create(new CreateRequest(path + "/g", CreateMode.Persistent)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.ChildrenChanged, ConnectionState.Connected, path), 
-                (NodeChangedEventType.ChildrenChanged, ConnectionState.Connected, path));
+                (NodeChangedEventType.ChildrenChanged, path), 
+                (NodeChangedEventType.ChildrenChanged, path));
         }
 
         [Test]
@@ -328,7 +326,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.Ephemeral)]
-        public void Should_be_triggered_on_client_disconnect(CreateMode createMode)
+        public void Should_not_be_triggered_on_client_disconnect(CreateMode createMode)
         {
             var path = "/watch/new";
             var watcher = new TestWatcher();
@@ -336,20 +334,18 @@ namespace Vostok.ZooKeeper.Client.Tests
             localClient.Create(new CreateRequest(path, createMode)).EnsureSuccess();
             localClient.Exists(new ExistsRequest(path) {Watcher = watcher});
 
-            ensemble.Stop();
+            Ensemble.Stop();
             WaitForDisconectedState(client);
-            ensemble.Start();
+            Ensemble.Start();
 
             localClient.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.ConnectionStateChanged, ConnectionState.Disconnected, null),
-                (NodeChangedEventType.ConnectionStateChanged, ConnectionState.Connected, null),
-                (NodeChangedEventType.Deleted, ConnectionState.Connected, path));
+                (NodeChangedEventType.Deleted, path));
         }
 
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.Ephemeral)]
-        public void Should_be_triggered_on_client_session_expire(CreateMode createMode)
+        public void Should_not_be_triggered_on_client_session_expire(CreateMode createMode)
         {
             var path = "/watch/new";
             var watcher = new TestWatcher();
@@ -357,7 +353,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             localClient.Create(new CreateRequest(path, createMode)).EnsureSuccess();
             localClient.Exists(new ExistsRequest(path) { Watcher = watcher });
 
-            KillSession(localClient, ensemble.ConnectionString).GetAwaiter().GetResult();
+            KillSession(localClient, Ensemble.ConnectionString).GetAwaiter().GetResult();
 
             var result = localClient.Delete(new DeleteRequest(path));
             if (createMode.IsEphemeral())
@@ -365,28 +361,26 @@ namespace Vostok.ZooKeeper.Client.Tests
             else
                 result.Status.Should().Be(ZooKeeperStatus.Ok);
 
-            watcher.ShouldBeTriggeredBy(
-                (NodeChangedEventType.ConnectionStateChanged, ConnectionState.Disconnected, null),
-                (NodeChangedEventType.ConnectionStateChanged, ConnectionState.Expired, null));
+            watcher.ShouldNotBeTriggered();
         }
 
         private class TestWatcher : INodeWatcher
         {
             private TimeSpan timeout = 1.Seconds();
             private object sync = new object();
-            public List<(NodeChangedEventType, ConnectionState, string)> Values = new List<(NodeChangedEventType, ConnectionState, string)>();
+            public List<(NodeChangedEventType, string)> Values = new List<(NodeChangedEventType, string)>();
             
-            public Task ProcessEvent(NodeChangedEventType type, ConnectionState connectionState, string path)
+            public Task ProcessEvent(NodeChangedEventType type, string path)
             {
                 lock (sync)
                 {
-                    Values.Add((type, connectionState, path));
+                    Values.Add((type, path));
                 }
 
                 return Task.CompletedTask;
             }
 
-            public void ShouldBeTriggeredBy(params (NodeChangedEventType, ConnectionState connectionState, string)[] events)
+            public void ShouldBeTriggeredBy(params (NodeChangedEventType, string)[] events)
             {
                 Thread.Sleep(timeout);
                 lock (sync)
@@ -395,14 +389,9 @@ namespace Vostok.ZooKeeper.Client.Tests
                 }
             }
 
-            public void ShouldBeTriggeredBy(NodeChangedEventType type, ConnectionState connectionState, string path)
-            {
-                ShouldBeTriggeredBy((type, connectionState, path));
-            }
-
             public void ShouldBeTriggeredBy(NodeChangedEventType type, string path)
             {
-                ShouldBeTriggeredBy((type, ConnectionState.Connected, path));
+                ShouldBeTriggeredBy((type, path));
             }
 
             public void ShouldNotBeTriggered()

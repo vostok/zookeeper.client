@@ -19,7 +19,8 @@ namespace Vostok.ZooKeeper.Client
         public override Task process(WatchedEvent @event)
         {
             log.Debug($"Recieved node event {@event}");
-            return watcher.ProcessEvent(@event.get_Type().FromZooKeeperEventType(), @event.getState().FromZooKeeperState(), @event.getPath());
+            // NOTE(kungurtsev): we ignore connection state changed events, because client holder can reset client
+            return @event.get_Type() == Event.EventType.None ? Task.CompletedTask : watcher.ProcessEvent(@event.get_Type().FromZooKeeperEventType(), @event.getPath());
         }
     }
 }

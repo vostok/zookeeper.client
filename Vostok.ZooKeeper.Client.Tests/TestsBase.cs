@@ -21,25 +21,25 @@ namespace Vostok.ZooKeeper.Client.Tests
         protected static TimeSpan DefaultTimeout = 10.Seconds();
         protected static readonly ILog Log = new SynchronousConsoleLog();
 
-        protected ZooKeeperEnsemble ensemble;
+        protected ZooKeeperEnsemble Ensemble;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
+            Ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
         }
 
         [SetUp]
         public void SetUp()
         {
-            if (!ensemble.IsRunning)
-                ensemble.Start();
+            if (!Ensemble.IsRunning)
+                Ensemble.Start();
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
-            ensemble.Dispose();
+            Ensemble.Dispose();
         }
 
         protected static ZooKeeperNetExClient WaitForNewConnectedClient(ClientHolder holder)
@@ -132,7 +132,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
+            var setup = new ZooKeeperClientSetup(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
             return new ZooKeeperClient(Log, setup);
         }
 
