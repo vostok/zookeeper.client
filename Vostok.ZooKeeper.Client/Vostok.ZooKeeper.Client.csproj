@@ -12,12 +12,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <Title>Vostok.ZooKeeper.Client</Title>
-    <Description>Vostok.ZooKeeper.Client</Description>
+    <Description>An implementation of ZooKeeper client.</Description>
   </PropertyGroup>
   <PropertyGroup>
     <PackageProjectUrl>https://github.com/vostok/zookeeper.client</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/vostok/zookeeper.client/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>vostok</PackageTags>
+    <PackageTags>vostok vostok.zookeeper</PackageTags>
     <RepositoryUrl>https://github.com/vostok/zookeeper.client</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
