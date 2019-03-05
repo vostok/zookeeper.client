@@ -32,11 +32,11 @@ namespace Vostok.ZooKeeper.Client.Tests
             var stat2 = await GetNodeStat(result2.NewPath);
 
             stat2.CreatedZxid.Should().Be(stat1.CreatedZxid + 1);
-            stat2.CreatedTime.Should().BeGreaterThan(stat1.CreatedZxid);
+            stat2.CreatedTime.Should().BeOnOrAfter(stat1.CreatedTime);
         }
 
         [Test]
-        public async Task ModifiedZxid_Version_should_increase()
+        public async Task ModifiedZxid_ModifiedTime_Version_should_increase()
         {
             var result = await client.CreateAsync(new CreateRequest("/modify/a", CreateMode.Persistent));
             var stat1 = await GetNodeStat(result.NewPath);
@@ -49,6 +49,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var stat2 = await GetNodeStat(result.NewPath);
 
             stat2.ModifiedZxid.Should().Be(stat1.ModifiedZxid + 1);
+            stat2.ModifiedTime.Should().BeOnOrAfter(stat1.ModifiedTime);
             stat2.Version.Should().Be(1);
         }
 
