@@ -28,7 +28,7 @@ namespace Vostok.ZooKeeper.Client
             LoggerHelper.InjectLogging(log);
         }
 
-        public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>();
+        public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
 
         public ConnectionState ConnectionState { get; private set; } = ConnectionState.Disconnected;
 
@@ -78,15 +78,21 @@ namespace Vostok.ZooKeeper.Client
                     return;
                 disposed = true;
 
-                if (ConnectionState == ConnectionState.Connected)
-                {
-                    OnConnectionStateChanged.Next(ConnectionState.Disconnected);
-                    ConnectionState = ConnectionState.Disconnected;
-                }
+                ChangeStateToDisconnectedIfNeeded();
 
                 client.Dispose();
                 connectionWatcher?.Dispose();
             }
+        }
+
+        private void ChangeStateToDisconnectedIfNeeded()
+        {
+            if (ConnectionState == ConnectionState.Disconnected)
+                return;
+
+            OnConnectionStateChanged.Next(ConnectionState.Disconnected);
+            OnConnectionStateChanged.Complete();
+            ConnectionState = ConnectionState.Disconnected;
         }
 
         private async Task<bool> WaitWithTimeout(Waiter localWaiter)
@@ -131,6 +137,8 @@ namespace Vostok.ZooKeeper.Client
                     client.Dispose();
                     connectionWatcher.Dispose();
                 }
+
+                ChangeStateToDisconnectedIfNeeded();
 
                 connectionWatcher = new ConnectionWatcher(log, ProcessEvent);
                 client = new ZooKeeperNetExClient(

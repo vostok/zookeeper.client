@@ -41,6 +41,10 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <inheritdoc />
+        /// <summary>
+        /// <para>Pushes last value to new subscribers.</para>
+        /// <para>Calls <see cref="IObserver{ConnectionState}.OnCompleted"/> on client <see cref="Dispose"/>.</para>
+        /// </summary>
         public IObservable<ConnectionState> OnConnectionStateChanged => clientHolder.OnConnectionStateChanged;
 
         /// <inheritdoc />

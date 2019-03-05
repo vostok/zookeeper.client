@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -64,6 +65,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         protected static void VerifyObserverMessages(TestObserver<ConnectionState> observer, params ConnectionState[] states)
         {
             Action assertion = () => { observer.Values.Should().BeEquivalentTo(states, options => options.WithStrictOrdering()); };
+            assertion.ShouldPassIn(DefaultTimeout, 0.5.Seconds());
+        }
+
+        protected static void VerifyObserverMessages(TestObserver<ConnectionState> observer, params Notification<ConnectionState>[] states)
+        {
+            Action assertion = () => { observer.Messages.Should().BeEquivalentTo(states, options => options.WithStrictOrdering()); };
             assertion.ShouldPassIn(DefaultTimeout, 0.5.Seconds());
         }
 

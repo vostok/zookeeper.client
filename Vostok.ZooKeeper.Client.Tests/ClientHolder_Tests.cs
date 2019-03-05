@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Reactive;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -89,12 +90,23 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void OnConnectionStateChanged_should_observe_disconnected_as_initail_state()
+        {
+            Ensemble.Stop();
+
+            var holder = GetClientHolder(Ensemble.ConnectionString, 1.Seconds());
+            var observer = GetObserver(holder);
+            
+            VerifyObserverMessages(observer, ConnectionState.Disconnected);
+        }
+
+        [Test]
         public void OnConnectionStateChanged_should_observe_connected()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
             holder.InitializeConnection();
-            VerifyObserverMessages(observer, ConnectionState.Connected);
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected);
         }
 
         [Test]
@@ -114,7 +126,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var observer = GetObserver(holder);
             WaitForNewConnectedClient(holder);
             Ensemble.Stop();
-            VerifyObserverMessages(observer, ConnectionState.Connected, ConnectionState.Disconnected);
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected);
         }
 
         [Test]
@@ -129,18 +141,31 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             WaitForNewConnectedClient(holder);
 
-            VerifyObserverMessages(observer, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Expired, ConnectionState.Connected);
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Expired, ConnectionState.Connected);
         }
 
         [Test]
-        public void Dispose_should_disconect_client()
+        public void OnConnectionStateChanged_should_complete_on_dispose()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
             WaitForDisconectedState(holder);
-            VerifyObserverMessages(observer, ConnectionState.Connected, ConnectionState.Disconnected);
+            VerifyObserverMessages(observer, 
+                Notification.CreateOnNext(ConnectionState.Disconnected), 
+                Notification.CreateOnNext(ConnectionState.Connected), 
+                Notification.CreateOnNext(ConnectionState.Disconnected),
+                Notification.CreateOnCompleted<ConnectionState>());
+        }
+
+        [Test]
+        public void Dispose_should_disconect_client()
+        {
+            var holder = GetClientHolder(Ensemble.ConnectionString);
+            WaitForNewConnectedClient(holder);
+            holder.Dispose();
+            WaitForDisconectedState(holder);
         }
 
         [Test]
