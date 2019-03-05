@@ -65,10 +65,10 @@ namespace Vostok.ZooKeeper.Client
             if (result.Status != ZooKeeperStatus.NodeNotFound || !request.CreateParentsIfNeeded)
                 return result;
 
-            var nodes = PathHelper.SplitPath(request.Path);
+            var nodes = ZooKeeperPath.Split(request.Path);
             for (var take = 1; take < nodes.Length; take++)
             {
-                var path = "/" + string.Join("/", nodes.Take(take));
+                var path = ZooKeeperPath.Combine(nodes.Take(take).ToArray());
                 var exists = await ExistsAsync(new ExistsRequest(path)).ConfigureAwait(false);
 
                 if (!exists.IsSuccessful)

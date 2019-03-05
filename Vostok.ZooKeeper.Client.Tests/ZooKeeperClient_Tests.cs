@@ -122,6 +122,23 @@ namespace Vostok.ZooKeeper.Client.Tests
             }
         }
 
+        [TestCase(CreateMode.PersistentSequential)]
+        [TestCase(CreateMode.EphemeralSequential)]
+        public async Task Create_should_create_sequential_node_without_name(CreateMode createMode)
+        {
+            var path = $"/create_sequential_node_{createMode}/a/";
+
+            for (var i = 0; i < 3; i++)
+            {
+                var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
+                createResult.EnsureSuccess();
+
+                await VerifyNodeCreated(client, createResult.NewPath);
+
+                createResult.NewPath.Should().Be($"{path}{i:D10}");
+            }
+        }
+
         [Test]
         public async Task Create_should_create_sequential_node_with_shared_parent_counter()
         {
