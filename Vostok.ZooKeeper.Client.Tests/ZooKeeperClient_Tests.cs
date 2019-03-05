@@ -186,6 +186,23 @@ namespace Vostok.ZooKeeper.Client.Tests
             createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
         }
 
+        [Test]
+        public async Task Create_should_return_NodeNotFound_for_nested_node()
+        {
+            var path = "/create_not_found/for_parent";
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) {CreateParrentsIfNeeded = false});
+
+            createResult.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+        }
+
+        [Test]
+        public async Task Create_should_not_return_NodeNotFound_for_root_node()
+        {
+            var path = "/create_not_found_root";
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { CreateParrentsIfNeeded = false });
+            createResult.EnsureSuccess();
+        }
+
         [TestCase(CreateMode.Ephemeral)]
         [TestCase(CreateMode.Persistent)]
         public async Task Create_should_return_ChildrenForEphemeralsAreNotAllowed(CreateMode childCreateMode)
@@ -367,12 +384,13 @@ namespace Vostok.ZooKeeper.Client.Tests
             var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node"));
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
+            result.EnsureSuccess();
         }
 
         [Test]
         public async Task Delete_should_return_NodeNotFound_with_delete_children_flag()
         {
-            var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node") {DeleteChildrenIfNeeded = true});
+            var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node"));
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
@@ -384,7 +402,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
 
-            var result = await client.DeleteAsync(new DeleteRequest("/delete_nested/a"));
+            var result = await client.DeleteAsync(new DeleteRequest("/delete_nested/a") {DeleteChildrenIfNeeded = false});
 
             result.Status.Should().Be(ZooKeeperStatus.NodeHasChildren);
 
@@ -399,34 +417,6 @@ namespace Vostok.ZooKeeper.Client.Tests
             (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
 
             var result = await client.DeleteAsync(new DeleteRequest(path) {Version = 42});
-
-            result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
-
-            await VerifyNodeCreated(client, path);
-        }
-
-        [Test]
-        public async Task Delete_should_return_VersionsMismatch_with_delete_children_flag()
-        {
-            var path = "/delete_version_mismatch_with_flag";
-
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
-
-            var result = await client.DeleteAsync(new DeleteRequest(path) {Version = 42, DeleteChildrenIfNeeded = true});
-
-            result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
-
-            await VerifyNodeCreated(client, path);
-        }
-
-        [Test]
-        public async Task Delete_should_return_VersionsMismatch_with_delete_children_flag_nested()
-        {
-            var path = "/delete_version_mismatch_with_flag/nested";
-
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
-
-            var result = await client.DeleteAsync(new DeleteRequest(path) {Version = 42, DeleteChildrenIfNeeded = true});
 
             result.Status.Should().Be(ZooKeeperStatus.VersionsMismatch);
 

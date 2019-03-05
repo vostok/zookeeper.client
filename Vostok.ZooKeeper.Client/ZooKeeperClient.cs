@@ -62,7 +62,7 @@ namespace Vostok.ZooKeeper.Client
         public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
             var result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
-            if (result.Status != ZooKeeperStatus.NodeNotFound)
+            if (result.Status != ZooKeeperStatus.NodeNotFound || !request.CreateParrentsIfNeeded)
                 return result;
 
             var nodes = PathHelper.SplitPath(request.Path);
