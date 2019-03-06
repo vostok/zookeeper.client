@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
+using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Helpers;
@@ -33,7 +34,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             Ensemble.Stop();
             WaitForDisconnectedState(client);
-            var result = await client.CreateAsync(new CreateRequest("/return_connection_loss", CreateMode.Persistent));
+            var result = await client.CreateAsync("/return_connection_loss", CreateMode.Persistent);
 
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
         }
@@ -45,14 +46,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             WaitForDisconnectedState(client);
             Ensemble.Start();
 
-            var result = await client.CreateAsync(new CreateRequest("/reconnect", CreateMode.Persistent));
+            var result = await client.CreateAsync("/reconnect", CreateMode.Persistent);
             result.EnsureSuccess();
         }
 
         [Test]
         public async Task SessionId_SessionPassword_ConnectionState_should_be_filled_after_connect()
         {
-            (await client.ExistsAsync(new ExistsRequest("/path"))).EnsureSuccess();
+            (await client.ExistsAsync("/path")).EnsureSuccess();
 
             client.ConnectionState.Should().Be(ConnectionState.Connected);
             client.SessionId.Should().NotBe(0);
@@ -67,7 +68,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = $"/create_node_{createMode}";
 
-            var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
+            var createResult = await client.CreateAsync(path, createMode);
             createResult.EnsureSuccess();
 
             if (!createMode.IsSequential())
@@ -97,9 +98,9 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             foreach (var path in paths)
             {
-                var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+                var createResult = await client.CreateAsync(path, CreateMode.Persistent);
                 createResult.EnsureSuccess();
-                (await client.ExistsAsync(new ExistsRequest(path))).Exists.Should().BeTrue();
+                (await client.ExistsAsync(path)).Exists.Should().BeTrue();
             }
         }
 
@@ -114,7 +115,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             for (var i = 0; i < 3; i++)
             {
-                var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
+                var createResult = await client.CreateAsync(path, createMode);
                 createResult.EnsureSuccess();
 
                 await VerifyNodeCreated(client, createResult.NewPath);
@@ -131,7 +132,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             for (var i = 0; i < 3; i++)
             {
-                var createResult = await client.CreateAsync(new CreateRequest(path, createMode));
+                var createResult = await client.CreateAsync(path, createMode);
                 createResult.EnsureSuccess();
 
                 await VerifyNodeCreated(client, createResult.NewPath);
@@ -147,10 +148,10 @@ namespace Vostok.ZooKeeper.Client.Tests
             // When creating a node you can also request that ZooKeeper append a monotonically increasing counter to the end of path.
             // This counter is unique to the parent node.
 
-            var createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/a", CreateMode.PersistentSequential));
+            var createResult = await client.CreateAsync("/shared_sequential/a", CreateMode.PersistentSequential);
             createResult.NewPath.Should().Be($"/shared_sequential/a{0:D10}");
 
-            createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/b", CreateMode.PersistentSequential));
+            createResult = await client.CreateAsync("/shared_sequential/b", CreateMode.PersistentSequential);
             createResult.NewPath.Should().Be($"/shared_sequential/b{1:D10}");
         }
 
@@ -163,14 +164,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             CreateMode createMode)
         {
             var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
-            var createResult = await client.CreateAsync(new CreateRequest($"/create_with_data_{size}_{createMode}", createMode) {Data = data});
+            var createResult = await client.CreateAsync($"/create_with_data_{size}_{createMode}", createMode, data);
             createResult.EnsureSuccess();
         }
 
         [Test]
         public async Task Create_should_return_BadArguments_for_big_data()
         {
-            var createResult = await client.CreateAsync(new CreateRequest("/big_data", CreateMode.Persistent) {Data = new byte[NodeHelper.DataSizeLimit + 1]});
+            var createResult = await client.CreateAsync("/big_data", CreateMode.Persistent, new byte[NodeHelper.DataSizeLimit + 1]);
             createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
             createResult.Exception.Should().BeOfType<ArgumentException>();
         }
@@ -179,7 +180,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [TestCase("/with_extra_slash_at_the_ending/")]
         public async Task Create_should_return_BadArguments_for_bad_path(string path)
         {
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+            var createResult = await client.CreateAsync(path, CreateMode.Persistent);
             createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
             createResult.Exception.Should().BeOfType<ArgumentException>();
         }
@@ -187,10 +188,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Create_should_return_NodeAlreadyExists()
         {
-            var createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
+            var createResult = await client.CreateAsync("/create_same_node_twice", CreateMode.Persistent);
             createResult.EnsureSuccess();
 
-            createResult = await client.CreateAsync(new CreateRequest("/create_same_node_twice", CreateMode.Persistent));
+            createResult = await client.CreateAsync("/create_same_node_twice", CreateMode.Persistent);
             createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
         }
 
@@ -198,10 +199,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Create_should_return_NodeAlreadyExists_for_nested_node()
         {
             var path = "/create_same_node_twice_nested/a/b/c/d";
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+            var createResult = await client.CreateAsync(path, CreateMode.Persistent);
             createResult.EnsureSuccess();
 
-            createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent));
+            createResult = await client.CreateAsync(path, CreateMode.Persistent);
             createResult.Status.Should().Be(ZooKeeperStatus.NodeAlreadyExists);
         }
 
@@ -226,10 +227,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         [TestCase(CreateMode.Persistent)]
         public async Task Create_should_return_ChildrenForEphemeralAreNotAllowed(CreateMode childCreateMode)
         {
-            var createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}", CreateMode.Ephemeral));
+            var createResult = await client.CreateAsync($"/ephemeral_parent_{childCreateMode}", CreateMode.Ephemeral);
             createResult.EnsureSuccess();
 
-            createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}/child", childCreateMode));
+            createResult = await client.CreateAsync($"/ephemeral_parent_{childCreateMode}/child", childCreateMode);
             createResult.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralAreNotAllowed);
         }
 
@@ -244,10 +245,10 @@ namespace Vostok.ZooKeeper.Client.Tests
             var data = Enumerable.Range(0, size).Select(i => (byte)(i % 256)).ToArray();
             var path = $"/get_saved_data_{size}_{createMode}";
 
-            var createResult = await client.CreateAsync(new CreateRequest(path, createMode) {Data = data});
+            var createResult = await client.CreateAsync(path, createMode, data);
             createResult.EnsureSuccess();
 
-            var result = await client.GetDataAsync(new GetDataRequest(path));
+            var result = await client.GetDataAsync(path);
             result.Data.Should().BeEquivalentTo(data, options => options.WithStrictOrdering());
         }
 
@@ -256,10 +257,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/get_saved_null_data";
 
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = null });
+            var createResult = await client.CreateAsync(path, CreateMode.Persistent);
             createResult.EnsureSuccess();
 
-            var result = await client.GetDataAsync(new GetDataRequest(path));
+            var result = await client.GetDataAsync(path);
             result.Data.Should().BeNull();
         }
 
@@ -268,10 +269,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/get_saved_empty_data";
 
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = new byte[0] });
+            var createResult = await client.CreateAsync(path, CreateMode.Persistent, new byte[0]);
             createResult.EnsureSuccess();
 
-            var result = await client.GetDataAsync(new GetDataRequest(path));
+            var result = await client.GetDataAsync(path);
             result.Data.Should().BeEmpty();
         }
 
@@ -282,16 +283,16 @@ namespace Vostok.ZooKeeper.Client.Tests
             var bytes1 = new byte[] {0, 1, 2, 3};
             var bytes2 = new byte[] {3, 2, 1};
 
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) {Data = bytes1});
+            var createResult = await client.CreateAsync(path, CreateMode.Persistent, bytes1);
             createResult.EnsureSuccess();
 
-            var result = await client.GetDataAsync(new GetDataRequest(path));
+            var result = await client.GetDataAsync(path);
             result.Data.Should().BeEquivalentTo(bytes1, options => options.WithStrictOrdering());
             result.Stat.DataLength.Should().Be(4);
             result.Stat.Version.Should().Be(0);
 
-            await client.SetDataAsync(new SetDataRequest(path, bytes2));
-            result = await client.GetDataAsync(new GetDataRequest(path));
+            await client.SetDataAsync(path, bytes2);
+            result = await client.GetDataAsync(path);
             result.Data.Should().BeEquivalentTo(bytes2, options => options.WithStrictOrdering());
             result.Stat.DataLength.Should().Be(3);
             result.Stat.Version.Should().Be(1);
@@ -300,7 +301,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task GetData_should_return_NodeNotFound()
         {
-            var result = await client.GetDataAsync(new GetDataRequest("/get_unexisting_node"));
+            var result = await client.GetDataAsync("/get_unexisting_node");
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
@@ -309,7 +310,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [TestCase("/with_extra_slash_at_the_ending/")]
         public async Task GetData_should_return_BadArguments_for_bad_path(string path)
         {
-            var createResult = await client.GetDataAsync(new GetDataRequest(path));
+            var createResult = await client.GetDataAsync(path);
             createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
             createResult.Exception.Should().BeOfType<ArgumentException>();
         }
@@ -319,7 +320,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/set_data_with_current_version";
 
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
             for (var version = 0; version < 3; version++)
             {
@@ -329,7 +330,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 setResult.Stat.Version.Should().Be(version + 1);
             }
 
-            var result = await client.GetDataAsync(new GetDataRequest(path));
+            var result = await client.GetDataAsync(path);
             result.Data.Should().BeEquivalentTo(new[] {(byte)3}, options => options.WithStrictOrdering());
             result.Stat.Version.Should().Be(3);
         }
@@ -350,7 +351,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task SetData_should_return_VersionsMismatch()
         {
             var path = "/set_data_vesions_mismatch";
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
             var result = await client.SetDataAsync(new SetDataRequest(path, null) {Version = 42});
 
@@ -360,7 +361,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task SetData_should_return_NodeNotFound()
         {
-            var result = await client.SetDataAsync(new SetDataRequest("/set_data_unexisting_node", null));
+            var result = await client.SetDataAsync("/set_data_unexisting_node", null);
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
@@ -368,7 +369,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Exists_should_return_false()
         {
-            var result = await client.ExistsAsync(new ExistsRequest("/exists_false"));
+            var result = await client.ExistsAsync("/exists_false");
 
             result.EnsureSuccess();
             result.Exists.Should().BeFalse();
@@ -379,9 +380,9 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Exists_should_return_true()
         {
             var path = "/exists_true";
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
-            var result = await client.ExistsAsync(new ExistsRequest(path));
+            var result = await client.ExistsAsync(path);
 
             result.EnsureSuccess();
             result.Exists.Should().BeTrue();
@@ -394,11 +395,11 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/delete_leaf";
 
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
             await VerifyNodeCreated(client, path);
 
-            (await client.DeleteAsync(new DeleteRequest(path))).EnsureSuccess();
+            (await client.DeleteAsync(path)).EnsureSuccess();
 
             await VerifyNodeDeleted(client, path);
         }
@@ -410,10 +411,10 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             foreach (var path in paths)
             {
-                (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+                (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
             }
 
-            (await client.DeleteAsync(new DeleteRequest("/root/a") {DeleteChildrenIfNeeded = true})).EnsureSuccess();
+            (await client.DeleteAsync("/root/a")).EnsureSuccess();
 
             await VerifyNodeDeleted(client, "/root/a");
             foreach (var path in paths.Where(p => p.StartsWith("/root/a")))
@@ -427,26 +428,18 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task Delete_should_return_NodeNotFound()
         {
-            var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node"));
+            var result = await client.DeleteAsync("/delete_unexisting_node");
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
             result.EnsureSuccess();
         }
-
-        [Test]
-        public async Task Delete_should_return_NodeNotFound_with_delete_children_flag()
-        {
-            var result = await client.DeleteAsync(new DeleteRequest("/delete_unexisting_node"));
-
-            result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
-        }
-
+        
         [Test]
         public async Task Delete_should_return_NodeHasChildren()
         {
             var path = "/delete_nested/a/b";
 
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
             var result = await client.DeleteAsync(new DeleteRequest("/delete_nested/a") {DeleteChildrenIfNeeded = false});
 
@@ -460,7 +453,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var path = "/delete_version_mismatch";
 
-            (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
 
             var result = await client.DeleteAsync(new DeleteRequest(path) {Version = 42});
 
@@ -472,7 +465,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task GetChildren_should_return_NodeNotFound()
         {
-            var result = await client.GetChildrenAsync(new GetChildrenRequest("/get_children_unexisting_node"));
+            var result = await client.GetChildrenAsync("/get_children_unexisting_node");
 
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
         }
@@ -484,10 +477,10 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             foreach (var path in paths)
             {
-                (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
+                (await client.CreateAsync(path, CreateMode.Persistent)).EnsureSuccess();
             }
 
-            var result = await client.GetChildrenAsync(new GetChildrenRequest("/get_children/a"));
+            var result = await client.GetChildrenAsync("/get_children/a");
             result.ChildrenNames.Should().BeEquivalentTo("b", "e");
             result.Stat.ChildrenVersion.Should().Be(2);
         }
@@ -498,7 +491,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/dispose_ephemeral";
 
             var disposedClient = GetClient();
-            (await disposedClient.CreateAsync(new CreateRequest(path, CreateMode.Ephemeral))).EnsureSuccess();
+            (await disposedClient.CreateAsync(path, CreateMode.Ephemeral)).EnsureSuccess();
             disposedClient.Dispose();
 
             await VerifyNodeDeleted(GetClient(), path);
@@ -521,14 +514,14 @@ namespace Vostok.ZooKeeper.Client.Tests
             var disposedClient = GetClient();
             disposedClient.Dispose();
 
-            var result = await disposedClient.ExistsAsync(new ExistsRequest("/path"));
+            var result = await disposedClient.ExistsAsync("/path");
 
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
         }
 
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
         {
-            var node = await client.GetDataAsync(new GetDataRequest(path));
+            var node = await client.GetDataAsync(path);
             node.EnsureSuccess();
 
             node.Path.Should().Be(path);
@@ -537,7 +530,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         private static async Task VerifyNodeDeleted(ZooKeeperClient client, string path)
         {
-            var node = await client.ExistsAsync(new ExistsRequest(path));
+            var node = await client.ExistsAsync(path);
             node.EnsureSuccess();
 
             node.Exists.Should().BeFalse();

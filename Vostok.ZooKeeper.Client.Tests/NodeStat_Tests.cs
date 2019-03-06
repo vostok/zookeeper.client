@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
+using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
-using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -26,8 +26,8 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task CreatedZxId_CreatedTime_should_increase()
         {
-            var result1 = await client.CreateAsync(new CreateRequest("/create/a", CreateMode.Persistent));
-            var result2 = await client.CreateAsync(new CreateRequest("/create/b", CreateMode.Persistent));
+            var result1 = await client.CreateAsync("/create/a", CreateMode.Persistent);
+            var result2 = await client.CreateAsync("/create/b", CreateMode.Persistent);
             var stat1 = await GetNodeStat(result1.NewPath);
             var stat2 = await GetNodeStat(result2.NewPath);
 
@@ -38,13 +38,13 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task ModifiedZxId_ModifiedTime_Version_should_increase()
         {
-            var result = await client.CreateAsync(new CreateRequest("/modify/a", CreateMode.Persistent));
+            var result = await client.CreateAsync("/modify/a", CreateMode.Persistent);
             var stat1 = await GetNodeStat(result.NewPath);
 
             stat1.ModifiedZxId.Should().Be(stat1.CreatedZxId);
             stat1.Version.Should().Be(0);
 
-            (await client.SetDataAsync(new SetDataRequest(result.NewPath, new byte[] {1, 2, 3}))).EnsureSuccess();
+            (await client.SetDataAsync(result.NewPath, new byte[] {1, 2, 3})).EnsureSuccess();
 
             var stat2 = await GetNodeStat(result.NewPath);
 
@@ -56,13 +56,13 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task ModifiedChildrenZxId_ChildrenVersion_should_increase()
         {
-            var result = await client.CreateAsync(new CreateRequest("/modify_children/a", CreateMode.Persistent));
+            var result = await client.CreateAsync("/modify_children/a", CreateMode.Persistent);
             var stat1 = await GetNodeStat(result.NewPath);
 
             stat1.ModifiedChildrenZxId.Should().Be(stat1.CreatedZxId);
             stat1.ChildrenVersion.Should().Be(0);
 
-            (await client.CreateAsync(new CreateRequest(result.NewPath + "/b", CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(result.NewPath + "/b", CreateMode.Persistent)).EnsureSuccess();
 
             var stat2 = await GetNodeStat(result.NewPath);
 
@@ -74,7 +74,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task EphemeralOwner_should_return_current_client_session_id()
         {
-            var result = await client.CreateAsync(new CreateRequest("/owner/a", CreateMode.Ephemeral));
+            var result = await client.CreateAsync("/owner/a", CreateMode.Ephemeral);
             var stat = await GetNodeStat(result.NewPath);
 
             stat.EphemeralOwner.Should().Be(client.SessionId);
@@ -83,15 +83,15 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public async Task DataLength_should_return_data_length()
         {
-            var result = await client.CreateAsync(new CreateRequest("/data/a", CreateMode.Persistent));
+            var result = await client.CreateAsync("/data/a", CreateMode.Persistent);
 
-            await client.SetDataAsync(new SetDataRequest(result.NewPath, null));
+            await client.SetDataAsync(result.NewPath, null);
             (await GetNodeStat(result.NewPath)).DataLength.Should().Be(0);
 
-            await client.SetDataAsync(new SetDataRequest(result.NewPath, new byte[0]));
+            await client.SetDataAsync(result.NewPath, new byte[0]);
             (await GetNodeStat(result.NewPath)).DataLength.Should().Be(0);
 
-            await client.SetDataAsync(new SetDataRequest(result.NewPath, new byte[42]));
+            await client.SetDataAsync(result.NewPath, new byte[42]);
             (await GetNodeStat(result.NewPath)).DataLength.Should().Be(42);
         }
 
@@ -100,22 +100,22 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var root = "/number_of_children/a";
 
-            (await client.CreateAsync(new CreateRequest(root, CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(root, CreateMode.Persistent)).EnsureSuccess();
             (await GetNodeStat(root)).NumberOfChildren.Should().Be(0);
 
-            (await client.CreateAsync(new CreateRequest(root + "/x", CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(root + "/x", CreateMode.Persistent)).EnsureSuccess();
             (await GetNodeStat(root)).NumberOfChildren.Should().Be(1);
 
-            (await client.CreateAsync(new CreateRequest(root + "/y", CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(root + "/y", CreateMode.Persistent)).EnsureSuccess();
             (await GetNodeStat(root)).NumberOfChildren.Should().Be(2);
 
-            (await client.CreateAsync(new CreateRequest(root + "/x/y", CreateMode.Persistent))).EnsureSuccess();
+            (await client.CreateAsync(root + "/x/y", CreateMode.Persistent)).EnsureSuccess();
             (await GetNodeStat(root)).NumberOfChildren.Should().Be(2);
         }
 
         private async Task<NodeStat> GetNodeStat(string path)
         {
-            return (await client.ExistsAsync(new ExistsRequest(path))).Stat;
+            return (await client.ExistsAsync(path)).Stat;
         }
     }
 }
