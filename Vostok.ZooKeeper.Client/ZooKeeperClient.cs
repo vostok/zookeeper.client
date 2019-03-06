@@ -8,7 +8,6 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
-using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Operations;
 using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
 
@@ -141,7 +140,7 @@ namespace Vostok.ZooKeeper.Client
                 if (!children.IsSuccessful)
                 {
                     // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
-                    return new DeleteResult(children.Status, request.Path);
+                    return DeleteResult.Unsuccessful(children.Status, request.Path, null);
                 }
 
                 foreach (var name in children.ChildrenNames)
@@ -175,7 +174,7 @@ namespace Vostok.ZooKeeper.Client
             }
             catch (KeeperException e)
             {
-                result = operation.CreateUnsuccessfulResult(e.FromZooKeeperExcetion(), e);
+                result = operation.CreateUnsuccessfulResult(e.FromZooKeeperException(), e);
             }
             catch (ArgumentException e)
             {

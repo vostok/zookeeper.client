@@ -50,13 +50,13 @@ namespace Vostok.ZooKeeper.Client.Tests
             return client;
         }
 
-        protected static void WaitForDisconectedState(ZooKeeperClient client)
+        protected static void WaitForDisconnectedState(ZooKeeperClient client)
         {
             Action assertion = () => { client.ConnectionState.Should().Be(ConnectionState.Disconnected); };
             assertion.ShouldPassIn(5.Seconds());
         }
 
-        protected static void WaitForDisconectedState(ClientHolder holder)
+        protected static void WaitForDisconnectedState(ClientHolder holder)
         {
             Action assertion = () => { holder.ConnectionState.Should().Be(ConnectionState.Disconnected); };
             assertion.ShouldPassIn(5.Seconds());

@@ -20,9 +20,10 @@ namespace Vostok.ZooKeeper.Client.Operations
         {
             var result = await client.existsAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
 
-            return new ExistsResult(ZooKeeperStatus.Ok, Request.Path, result.FromZooKeeperStat());
+            return ExistsResult.Successful(Request.Path, result.FromZooKeeperStat());
         }
 
-        public override ExistsResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new ExistsResult(status, Request.Path, null) {Exception = exception};
+        public override ExistsResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => 
+            ExistsResult.Unsuccessful(status, Request.Path, exception);
     }
 }

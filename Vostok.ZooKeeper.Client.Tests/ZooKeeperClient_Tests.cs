@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -31,7 +32,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Should_return_NotConnected()
         {
             Ensemble.Stop();
-            WaitForDisconectedState(client);
+            WaitForDisconnectedState(client);
             var result = await client.CreateAsync(new CreateRequest("/return_connection_loss", CreateMode.Persistent));
 
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
@@ -41,7 +42,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Should_reconnect()
         {
             Ensemble.Stop();
-            WaitForDisconectedState(client);
+            WaitForDisconnectedState(client);
             Ensemble.Start();
 
             var result = await client.CreateAsync(new CreateRequest("/reconnect", CreateMode.Persistent));
@@ -140,10 +141,11 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        [SuppressMessage("ReSharper", "PossiblyMistakenUseOfInterpolatedStringInsert")]
         public async Task Create_should_create_sequential_node_with_shared_parent_counter()
         {
             // When creating a node you can also request that ZooKeeper append a monotonically increasing counter to the end of path.
-            // This counter is unique to the parent znode.
+            // This counter is unique to the parent node.
 
             var createResult = await client.CreateAsync(new CreateRequest("/shared_sequential/a", CreateMode.PersistentSequential));
             createResult.NewPath.Should().Be($"/shared_sequential/a{0:D10}");
@@ -222,13 +224,13 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [TestCase(CreateMode.Ephemeral)]
         [TestCase(CreateMode.Persistent)]
-        public async Task Create_should_return_ChildrenForEphemeralsAreNotAllowed(CreateMode childCreateMode)
+        public async Task Create_should_return_ChildrenForEphemeralAreNotAllowed(CreateMode childCreateMode)
         {
             var createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}", CreateMode.Ephemeral));
             createResult.EnsureSuccess();
 
             createResult = await client.CreateAsync(new CreateRequest($"/ephemeral_parent_{childCreateMode}/child", childCreateMode));
-            createResult.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralsAreNotAllowed);
+            createResult.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralAreNotAllowed);
         }
 
         [Test]
@@ -250,7 +252,31 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task GetData_should_return_modified_data()
+        public async Task GetData_should_return_null_data()
+        {
+            var path = "/get_saved_null_data";
+
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = null });
+            createResult.EnsureSuccess();
+
+            var result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeNull();
+        }
+
+        [Test]
+        public async Task GetData_should_return_empty_data()
+        {
+            var path = "/get_saved_empty_data";
+
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { Data = new byte[0] });
+            createResult.EnsureSuccess();
+
+            var result = await client.GetDataAsync(new GetDataRequest(path));
+            result.Data.Should().BeEmpty();
+        }
+
+        [Test]
+        public async Task GetData_should_return_modified_data_and_stat()
         {
             var path = "/get_modified_data";
             var bytes1 = new byte[] {0, 1, 2, 3};
@@ -315,7 +341,9 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             (await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent))).EnsureSuccess();
 
-            (await client.SetDataAsync(new SetDataRequest(path, null) {Version = -1})).EnsureSuccess();
+            var result = await client.SetDataAsync(new SetDataRequest(path, null) {Version = -1});
+            result.EnsureSuccess();
+            result.Stat.Version.Should().Be(1);
         }
 
         [Test]
@@ -357,6 +385,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             result.EnsureSuccess();
             result.Exists.Should().BeTrue();
+            // ReSharper disable once PossibleNullReferenceException
             result.Stat.Version.Should().Be(0);
         }
 

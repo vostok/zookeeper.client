@@ -32,9 +32,10 @@ namespace Vostok.ZooKeeper.Client.Operations
             }
 
             var newPath = await client.createAsync(Request.Path, Request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, Request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
-            return new CreateResult(ZooKeeperStatus.Ok, Request.Path, newPath);
+            return CreateResult.Successful(Request.Path, newPath);
         }
 
-        public override CreateResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new CreateResult(status, Request.Path, null) {Exception = exception};
+        public override CreateResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => 
+            CreateResult.Unsuccessful(status, Request.Path, exception);
     }
 }

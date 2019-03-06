@@ -20,9 +20,10 @@ namespace Vostok.ZooKeeper.Client.Operations
         {
             var result = await client.getDataAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
 
-            return new GetDataResult(ZooKeeperStatus.Ok, Request.Path, result.Data, result.Stat.FromZooKeeperStat());
+            return GetDataResult.Successful(Request.Path, result.Data, result.Stat.FromZooKeeperStat());
         }
 
-        public override GetDataResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => new GetDataResult(status, Request.Path, null, null) {Exception = exception};
+        public override GetDataResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => 
+            GetDataResult.Unsuccessful(status, Request.Path, exception);
     }
 }

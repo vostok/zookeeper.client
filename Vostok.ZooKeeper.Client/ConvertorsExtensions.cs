@@ -27,7 +27,7 @@ namespace Vostok.ZooKeeper.Client
 
         public static NodeStat FromZooKeeperStat(this Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
 
-        public static ZooKeeperStatus FromZooKeeperExcetion(this KeeperException exception)
+        public static ZooKeeperStatus FromZooKeeperException(this KeeperException exception)
         {
             switch (exception.getCode())
             {
@@ -42,7 +42,7 @@ namespace Vostok.ZooKeeper.Client
                 case KeeperException.Code.BADVERSION:
                     return ZooKeeperStatus.VersionsMismatch;
                 case KeeperException.Code.NOCHILDRENFOREPHEMERALS:
-                    return ZooKeeperStatus.ChildrenForEphemeralsAreNotAllowed;
+                    return ZooKeeperStatus.ChildrenForEphemeralAreNotAllowed;
                 case KeeperException.Code.NODEEXISTS:
                     return ZooKeeperStatus.NodeAlreadyExists;
                 case KeeperException.Code.NOTEMPTY:

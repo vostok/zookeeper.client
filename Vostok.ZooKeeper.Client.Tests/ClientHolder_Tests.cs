@@ -43,7 +43,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var client1 = WaitForNewConnectedClient(holder);
 
             Ensemble.Stop();
-            WaitForDisconectedState(holder);
+            WaitForDisconnectedState(holder);
 
             Ensemble.Start();
             var client2 = WaitForNewConnectedClient(holder);
@@ -52,7 +52,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void GetConnectedClient_should_reconect_to_new_enseble_after_timeout()
+        public void GetConnectedClient_should_reconnect_to_new_ensemble_after_timeout()
         {
             using (var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))
             {
@@ -64,7 +64,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 WaitForNewConnectedClient(holder);
 
                 ensemble1.Dispose();
-                WaitForDisconectedState(holder);
+                WaitForDisconnectedState(holder);
 
                 using (var ensemble2 = ZooKeeperEnsemble.DeployNew(11, 1, Log))
                 {
@@ -90,7 +90,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void OnConnectionStateChanged_should_observe_disconnected_as_initail_state()
+        public void OnConnectionStateChanged_should_observe_disconnected_as_initial_state()
         {
             Ensemble.Stop();
 
@@ -151,7 +151,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var observer = GetObserver(holder);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            WaitForDisconectedState(holder);
+            WaitForDisconnectedState(holder);
             VerifyObserverMessages(observer, 
                 Notification.CreateOnNext(ConnectionState.Disconnected), 
                 Notification.CreateOnNext(ConnectionState.Connected), 
@@ -160,12 +160,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void Dispose_should_disconect_client()
+        public void Dispose_should_disconnect_client()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            WaitForDisconectedState(holder);
+            WaitForDisconnectedState(holder);
         }
 
         [Test]
