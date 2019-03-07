@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Vostok.Commons.Helpers.Observable;
+using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Helpers;
@@ -20,12 +22,17 @@ namespace Vostok.ZooKeeper.Client
         private volatile ConnectionWatcher connectionWatcher;
         private DateTime lastConnectionStateChanged = DateTime.Now;
         private bool disposed;
+        private readonly ConcurrentQueue<ConnectionEvent> connectionEvents = new ConcurrentQueue<ConnectionEvent>();
+        private readonly AsyncManualResetEvent connectEventSignal = new AsyncManualResetEvent(false);
+        private readonly CancellationToken cancellationToken = new CancellationToken();
 
         public ClientHolder(ILog log, ZooKeeperClientSetup setup)
         {
             this.log = log;
             this.setup = setup;
             LoggerHelper.InjectLogging(log);
+
+            StartProcessingEventsTask();
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
@@ -140,7 +147,7 @@ namespace Vostok.ZooKeeper.Client
 
                 ChangeStateToDisconnectedIfNeeded();
 
-                connectionWatcher = new ConnectionWatcher(log, ProcessEvent);
+                connectionWatcher = new ConnectionWatcher(log, EnqueueEvent);
                 client = new ZooKeeperNetExClient(
                     setup.GetConnectionString(),
                     setup.ToZooKeeperConnectionTimeout(),
@@ -150,13 +157,40 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        private void ProcessEvent(ConnectionState newConnectionState, ConnectionWatcher eventFrom)
+        private void EnqueueEvent(ConnectionEvent connectionEvent)
+        {
+            connectionEvents.Enqueue(connectionEvent);
+            connectEventSignal.Set();
+        }
+
+        private void StartProcessingEventsTask()
+        {
+            Task.Run(
+                async () =>
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        // TODO(kungurtsev): cancel wait async?
+                        await connectEventSignal.WaitAsync().ConfigureAwait(false);
+                        connectEventSignal.Reset();
+
+                        while (connectionEvents.TryDequeue(out var connectionEvent))
+                            ProcessEvent(connectionEvent);
+                    }
+                    // ReSharper disable once FunctionNeverReturns
+                }, cancellationToken);
+        }
+
+        private void ProcessEvent(ConnectionEvent connectionEvent)
         {
             lock (sync)
             {
-                if (disposed || eventFrom.Disposed)
+                log.Debug($"Processing event {connectionEvent}");
+
+                if (disposed || !ReferenceEquals(connectionEvent.EventFrom, connectionWatcher))
                     return;
 
+                var newConnectionState = connectionEvent.NewConnectionState;
                 var oldConnectionState = ConnectionState;
                 log.Debug($"Changing holder state {oldConnectionState} -> {newConnectionState}.");
                 if (newConnectionState == oldConnectionState)

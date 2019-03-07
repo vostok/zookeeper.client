@@ -2,17 +2,16 @@
 using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
-using Vostok.ZooKeeper.Client.Abstractions.Model;
 
 namespace Vostok.ZooKeeper.Client
 {
     internal class ConnectionWatcher : Watcher, IDisposable
     {
-        public bool Disposed;
+        private bool disposed;
         private readonly ILog log;
-        private readonly Action<ConnectionState, ConnectionWatcher> action;
+        private readonly Action<ConnectionEvent> action;
 
-        public ConnectionWatcher(ILog log, Action<ConnectionState, ConnectionWatcher> action)
+        public ConnectionWatcher(ILog log, Action<ConnectionEvent> action)
         {
             this.log = log;
             this.action = action;
@@ -20,7 +19,7 @@ namespace Vostok.ZooKeeper.Client
 
         public override Task process(WatchedEvent @event)
         {
-            if (Disposed)
+            if (disposed)
                 return Task.CompletedTask;
 
             log.Debug($"Recieved event {@event}");
@@ -28,14 +27,15 @@ namespace Vostok.ZooKeeper.Client
             if (@event.get_Type() != Event.EventType.None)
                 return Task.CompletedTask;
 
-            action(@event.getState().FromZooKeeperState(), this);
+            var connectionEvent = new ConnectionEvent(@event, this);
+            action(connectionEvent);
 
             return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            Disposed = true;
+            disposed = true;
         }
     }
 }

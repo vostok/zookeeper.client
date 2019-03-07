@@ -9,7 +9,7 @@ notests *default:
     - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
 
   deps:
-    - vostok.commons.time
+    - vostok.commons.time/src
     - vostok.commons.helpers/src
     - vostok.logging.context
     - vostok.logging.abstractions

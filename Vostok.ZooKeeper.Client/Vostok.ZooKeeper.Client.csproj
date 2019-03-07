@@ -25,6 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\vostok.commons.helpers\Vostok.Commons.Helpers\Observable\CachingObservable.cs" Link="Commons\CachingObservable.cs" />
+    <Compile Include="..\..\vostok.commons.threading\Vostok.Commons.Threading\AsyncManualResetEvent.cs" Link="Commons\AsyncManualResetEvent.cs" />
+    <Compile Include="..\..\vostok.commons.time\Vostok.Commons.Time\TimeSpanConversions.cs" Link="Commons\TimeSpanConversions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Vostok.ZooKeeper.Client.Abstractions">
@@ -38,10 +40,6 @@
     <Reference Include="Vostok.Logging.Context">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.logging.context\Vostok.Logging.Context\bin\Release\netstandard2.0\Vostok.Logging.Context.dll</HintPath>
-    </Reference>
-    <Reference Include="Vostok.Commons.Time">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\vostok.commons.time\Vostok.Commons.Time\bin\Release\netstandard2.0\Vostok.Commons.Time.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
