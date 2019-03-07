@@ -141,7 +141,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             WaitForNewConnectedClient(holder);
 
-            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Expired, ConnectionState.Connected);
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Expired, ConnectionState.Disconnected, ConnectionState.Connected);
         }
 
         [Test]

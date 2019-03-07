@@ -86,6 +86,7 @@ namespace Vostok.ZooKeeper.Client
                 disposed = true;
 
                 ChangeStateToDisconnectedIfNeeded();
+                OnConnectionStateChanged.Complete();
 
                 client.Dispose();
                 connectionWatcher?.Dispose();
@@ -97,9 +98,8 @@ namespace Vostok.ZooKeeper.Client
             if (ConnectionState == ConnectionState.Disconnected)
                 return;
 
-            OnConnectionStateChanged.Next(ConnectionState.Disconnected);
-            OnConnectionStateChanged.Complete();
             ConnectionState = ConnectionState.Disconnected;
+            OnConnectionStateChanged.Next(ConnectionState.Disconnected);
         }
 
         private async Task<bool> WaitWithTimeout(Waiter localWaiter)
@@ -170,14 +170,12 @@ namespace Vostok.ZooKeeper.Client
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        // TODO(kungurtsev): cancel wait async?
-                        await connectEventSignal.WaitAsync().ConfigureAwait(false);
+                        await connectEventSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                         connectEventSignal.Reset();
 
-                        while (connectionEvents.TryDequeue(out var connectionEvent))
+                        while (!cancellationToken.IsCancellationRequested && connectionEvents.TryDequeue(out var connectionEvent))
                             ProcessEvent(connectionEvent);
                     }
-                    // ReSharper disable once FunctionNeverReturns
                 }, cancellationToken);
         }
 
@@ -196,16 +194,17 @@ namespace Vostok.ZooKeeper.Client
                 if (newConnectionState == oldConnectionState)
                     return;
 
+                lastConnectionStateChanged = DateTime.Now;
+                
+                ConnectionState = newConnectionState;
+                OnConnectionStateChanged.Next(newConnectionState);
+
                 if (oldConnectionState == ConnectionState.Connected)
                     connectWaiter = new Waiter(TaskCreationOptions.RunContinuationsAsynchronously);
                 if (newConnectionState == ConnectionState.Connected)
                     connectWaiter.TrySetResult(client);
                 if (newConnectionState == ConnectionState.Expired)
                     ResetClient();
-
-                ConnectionState = newConnectionState;
-                lastConnectionStateChanged = DateTime.Now;
-                OnConnectionStateChanged.Next(newConnectionState);
             }
         }
 
