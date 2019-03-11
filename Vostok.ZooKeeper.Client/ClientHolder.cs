@@ -22,8 +22,8 @@ namespace Vostok.ZooKeeper.Client
         private volatile ConnectionWatcher connectionWatcher;
         private DateTime lastConnectionStateChanged = DateTime.Now;
         private bool disposed;
-        private readonly ConcurrentQueue<ConnectionEvent> connectionEvents = new ConcurrentQueue<ConnectionEvent>();
-        private readonly AsyncManualResetEvent connectEventSignal = new AsyncManualResetEvent(false);
+        private readonly ConcurrentQueue<ConnectionEvent> events = new ConcurrentQueue<ConnectionEvent>();
+        private readonly AsyncManualResetEvent eventSignal = new AsyncManualResetEvent(false);
         private readonly CancellationToken cancellationToken = new CancellationToken();
 
         public ClientHolder(ILog log, ZooKeeperClientSetup setup)
@@ -159,8 +159,8 @@ namespace Vostok.ZooKeeper.Client
 
         private void EnqueueEvent(ConnectionEvent connectionEvent)
         {
-            connectionEvents.Enqueue(connectionEvent);
-            connectEventSignal.Set();
+            events.Enqueue(connectionEvent);
+            eventSignal.Set();
         }
 
         private void StartProcessingEventsTask()
@@ -170,11 +170,22 @@ namespace Vostok.ZooKeeper.Client
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        await connectEventSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
-                        connectEventSignal.Reset();
+                        await eventSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        eventSignal.Reset();
 
-                        while (!cancellationToken.IsCancellationRequested && connectionEvents.TryDequeue(out var connectionEvent))
-                            ProcessEvent(connectionEvent);
+                        while (!cancellationToken.IsCancellationRequested && events.TryDequeue(out var connectionEvent))
+                        {
+                            log.Debug($"Processing event {connectionEvent}");
+                            try
+                            {
+                                ProcessEvent(connectionEvent);
+                            }
+                            catch (Exception e)
+                            {
+                                // TODO(kungurtsev): what to do?
+                                log.Error(e, $"Failed to process event {connectionEvent}");
+                            }
+                        }
                     }
                 }, cancellationToken);
         }
@@ -183,8 +194,6 @@ namespace Vostok.ZooKeeper.Client
         {
             lock (sync)
             {
-                log.Debug($"Processing event {connectionEvent}");
-
                 if (disposed || !ReferenceEquals(connectionEvent.EventFrom, connectionWatcher))
                     return;
 

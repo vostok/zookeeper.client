@@ -48,7 +48,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             Ensemble.Start();
             var client2 = WaitForNewConnectedClient(holder);
 
-            client2.Should().Be(client1);
+            client2.Should().BeSameAs(client1);
         }
 
         [Test]
