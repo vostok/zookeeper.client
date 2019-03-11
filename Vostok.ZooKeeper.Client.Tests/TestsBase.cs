@@ -19,7 +19,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal abstract class TestsBase
     {
         protected static readonly ILog Log = new SynchronousConsoleLog();
-        protected static TimeSpan DefaultTimeout = 5.Seconds();
+        protected static TimeSpan DefaultTimeout = 10.Seconds();
 
         protected ZooKeeperEnsemble Ensemble;
 
