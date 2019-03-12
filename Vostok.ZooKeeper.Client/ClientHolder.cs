@@ -102,7 +102,7 @@ namespace Vostok.ZooKeeper.Client
 
         private bool IsConnected(ClientHolderState currentState)
         {
-            return currentState != null && 
+            return currentState != null &&
                    (currentState.ConnectionState == ConnectionState.Connected || setup.CanBeReadOnly && currentState.ConnectionState == ConnectionState.ConnectedReadonly);
         }
 

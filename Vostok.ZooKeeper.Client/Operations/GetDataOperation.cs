@@ -23,7 +23,7 @@ namespace Vostok.ZooKeeper.Client.Operations
             return GetDataResult.Successful(Request.Path, result.Data, result.Stat.FromZooKeeperStat());
         }
 
-        public override GetDataResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) => 
+        public override GetDataResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) =>
             GetDataResult.Unsuccessful(status, Request.Path, exception);
     }
 }

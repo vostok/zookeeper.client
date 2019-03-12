@@ -5,7 +5,6 @@ namespace Vostok.ZooKeeper.Client
 {
     internal class ConnectionEvent
     {
-        public ConnectionState NewConnectionState => Event.getState().FromZooKeeperState();
         public readonly ConnectionWatcher EventFrom;
         private readonly WatchedEvent Event;
 
@@ -14,6 +13,8 @@ namespace Vostok.ZooKeeper.Client
             Event = @event;
             EventFrom = eventFrom;
         }
+
+        public ConnectionState NewConnectionState => Event.getState().FromZooKeeperState();
 
         public override string ToString() => Event.ToString();
     }
