@@ -38,6 +38,7 @@ namespace Vostok.ZooKeeper.Client
         private readonly ILog log;
         private readonly ZooKeeperClientSetup setup;
         private readonly AsyncManualResetEvent connectSignal = new AsyncManualResetEvent(false);
+        private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         private volatile ClientHolderState state;
 
@@ -71,8 +72,7 @@ namespace Vostok.ZooKeeper.Client
             if (IsConnected(currentState))
                 return currentState.Client;
 
-            if (!await WaitWithTimeout(connectSignal).ConfigureAwait(false))
-                return null;
+            await WaitWithTimeout(connectSignal).ConfigureAwait(false);
 
             currentState = state;
             return IsConnected(currentState) ? currentState.Client : null;
@@ -90,9 +90,8 @@ namespace Vostok.ZooKeeper.Client
                 return;
             }
 
-            // TODO(kungurtsev): not send twice
-            if (oldState.ConnectionState != ConnectionState.Disconnected)
-                OnConnectionStateChanged.Next(ConnectionState.Disconnected);
+            // TODO(kungurtsev): complete with disconnected
+            SentOnConnectionStateChanged();
             OnConnectionStateChanged.Complete();
 
             oldState.Dispose();
@@ -142,7 +141,7 @@ namespace Vostok.ZooKeeper.Client
 
             log.Debug($"Reset is successful. Old state: {currentState}. New state: {newState}.");
             currentState.Dispose();
-            // TODO(kungurtsev): notify observer
+            SentOnConnectionStateChanged();
         }
 
         private void ProcessEvent(ConnectionEvent connectionEvent)
@@ -169,8 +168,10 @@ namespace Vostok.ZooKeeper.Client
 
             log.Debug($"Process event is successful. Old state: {exchangedState}. New state: {newState}.");
 
-            OnConnectionStateChanged.Next(newState.ConnectionState);
+            // Note(kungurtsev): double reset can shuffle currentState, so we use state.
+            SentOnConnectionStateChanged();
 
+            // Note(kungurtsev): double reset can shuffle connectSignal.Set and connectSignal.Reset with a little probability.
             if (IsConnected(newState))
                 connectSignal.Set();
             else if (IsConnected(exchangedState))
@@ -178,6 +179,18 @@ namespace Vostok.ZooKeeper.Client
 
             if (newState.ConnectionState == ConnectionState.Expired)
                 ResetClient(newState);
+        }
+
+        private void SentOnConnectionStateChanged()
+        {
+            lock (OnConnectionStateChanged)
+            {
+                var toSend = ConnectionState;
+                if (lastSentConnectionState == toSend)
+                    return;
+                OnConnectionStateChanged.Next(toSend);
+                lastSentConnectionState = toSend;
+            }
         }
 
         private async Task<bool> WaitWithTimeout(Task task)
