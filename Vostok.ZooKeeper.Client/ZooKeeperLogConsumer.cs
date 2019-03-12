@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using org.apache.utils;
 using Vostok.Logging.Abstractions;
-using Vostok.Logging.Context;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -12,30 +11,29 @@ namespace Vostok.ZooKeeper.Client
 
         public ZooKeeperLogConsumer(ILog log)
         {
-            this.log = log.WithContextualPrefix();
+            this.log = log;
         }
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            using (new ContextualLogPrefix(className))
+            var localLog = log.ForContext(className);
+
+            switch (severity)
             {
-                switch (severity)
-                {
-                    case TraceLevel.Error:
-                        log.Error(exception, message);
-                        break;
-                    case TraceLevel.Info:
-                        log.Info(exception, message);
-                        break;
-                    case TraceLevel.Off:
-                        break;
-                    case TraceLevel.Verbose:
-                        log.Debug(exception, message);
-                        break;
-                    case TraceLevel.Warning:
-                        log.Warn(exception, message);
-                        break;
-                }
+                case TraceLevel.Error:
+                    localLog.Error(exception, message);
+                    break;
+                case TraceLevel.Info:
+                    localLog.Info(exception, message);
+                    break;
+                case TraceLevel.Off:
+                    break;
+                case TraceLevel.Verbose:
+                    localLog.Debug(exception, message);
+                    break;
+                case TraceLevel.Warning:
+                    localLog.Warn(exception, message);
+                    break;
             }
         }
     }

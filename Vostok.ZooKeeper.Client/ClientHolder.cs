@@ -43,12 +43,12 @@ namespace Vostok.ZooKeeper.Client
 
         public ClientHolder(ILog log, ZooKeeperClientSetup setup)
         {
-            this.log = log;
+            this.log = log.ForContext<ClientHolder>();
             this.setup = setup;
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected);
 
-            LoggerHelper.InjectLogging(log);
+            LoggerHelper.InjectLogging(this.log);
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
