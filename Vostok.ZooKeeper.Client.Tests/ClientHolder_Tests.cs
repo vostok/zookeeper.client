@@ -105,7 +105,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
-            holder.InitializeConnection();
+            WaitForNewConnectedClient(holder);
             VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected);
         }
 

@@ -5,9 +5,8 @@ using Vostok.Logging.Abstractions;
 
 namespace Vostok.ZooKeeper.Client
 {
-    internal class ConnectionWatcher : Watcher, IDisposable
+    internal class ConnectionWatcher : Watcher
     {
-        private bool disposed;
         private readonly ILog log;
         private readonly Action<ConnectionEvent> action;
 
@@ -19,10 +18,7 @@ namespace Vostok.ZooKeeper.Client
 
         public override Task process(WatchedEvent @event)
         {
-            if (disposed)
-                return Task.CompletedTask;
-
-            log.Debug($"Recieved event {@event}");
+            log.Debug($"Recieved event {@event}.");
 
             if (@event.get_Type() != Event.EventType.None)
                 return Task.CompletedTask;
@@ -31,11 +27,6 @@ namespace Vostok.ZooKeeper.Client
             action(connectionEvent);
 
             return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            disposed = true;
         }
     }
 }
