@@ -90,10 +90,7 @@ namespace Vostok.ZooKeeper.Client
                 return;
             }
 
-            // TODO(kungurtsev): complete with disconnected
-            SentOnConnectionStateChanged();
-            OnConnectionStateChanged.Complete();
-
+            SentOnConnectionStateChanged(true);
             oldState.Dispose();
             log.Debug("Disposed.");
         }
@@ -181,15 +178,18 @@ namespace Vostok.ZooKeeper.Client
                 ResetClient(newState);
         }
 
-        private void SentOnConnectionStateChanged()
+        private void SentOnConnectionStateChanged(bool complete = false)
         {
             lock (OnConnectionStateChanged)
             {
                 var toSend = ConnectionState;
-                if (lastSentConnectionState == toSend)
-                    return;
-                OnConnectionStateChanged.Next(toSend);
-                lastSentConnectionState = toSend;
+                if (lastSentConnectionState != toSend)
+                {
+                    OnConnectionStateChanged.Next(toSend);
+                    lastSentConnectionState = toSend;
+                }
+                if (complete)
+                    OnConnectionStateChanged.Complete();
             }
         }
 
