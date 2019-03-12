@@ -11,7 +11,7 @@ namespace Vostok.ZooKeeper.Client
 
         public ZooKeeperLogConsumer(ILog log)
         {
-            this.log = log;
+            this.log = log.ForContext("ZooKeeperNetExClient");
         }
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
