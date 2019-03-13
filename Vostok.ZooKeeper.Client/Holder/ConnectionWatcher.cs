@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal class ConnectionWatcher : Watcher
     {

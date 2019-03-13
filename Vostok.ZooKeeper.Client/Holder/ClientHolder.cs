@@ -10,11 +10,10 @@ using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal class ClientHolderState : IDisposable
     {
-        public ZooKeeperNetExClient Client => LazyClient?.Value;
         public readonly Lazy<ZooKeeperNetExClient> LazyClient;
         public readonly ConnectionState ConnectionState;
         public readonly DateTime StateChanged = DateTime.UtcNow;
@@ -27,6 +26,8 @@ namespace Vostok.ZooKeeper.Client
             ConnectionState = connectionState;
             ConnectionWatcher = connectionWatcher;
         }
+
+        public ZooKeeperNetExClient Client => LazyClient?.Value;
 
         public void Dispose()
         {
@@ -134,12 +135,13 @@ namespace Vostok.ZooKeeper.Client
             log.Debug($"Reseting client. Current state: {currentState}.");
 
             var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
-            var newClient = new Lazy<ZooKeeperNetExClient>(() => 
-                new ZooKeeperNetExClient(
-                    setup.GetConnectionString(),
-                    setup.ToZooKeeperConnectionTimeout(),
-                    newConnectionWatcher,
-                    setup.CanBeReadOnly), 
+            var newClient = new Lazy<ZooKeeperNetExClient>(
+                () =>
+                    new ZooKeeperNetExClient(
+                        setup.GetConnectionString(),
+                        setup.ToZooKeeperConnectionTimeout(),
+                        newConnectionWatcher,
+                        setup.CanBeReadOnly),
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
             var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected);
@@ -181,6 +183,7 @@ namespace Vostok.ZooKeeper.Client
                     OnConnectionStateChanged.Next(toSend);
                     lastSentConnectionState = toSend;
                 }
+
                 if (complete)
                     OnConnectionStateChanged.Complete();
             }

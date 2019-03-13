@@ -219,7 +219,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task Create_should_not_return_NodeNotFound_for_root_node()
         {
             var path = "/create_not_found_root";
-            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) { CreateParentsIfNeeded = false });
+            var createResult = await client.CreateAsync(new CreateRequest(path, CreateMode.Persistent) {CreateParentsIfNeeded = false});
             createResult.EnsureSuccess();
         }
 
@@ -433,7 +433,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
             result.EnsureSuccess();
         }
-        
+
         [Test]
         public async Task Delete_should_return_NodeHasChildren()
         {

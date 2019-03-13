@@ -6,6 +6,7 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
 
 namespace Vostok.ZooKeeper.Client.Tests
@@ -96,7 +97,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var holder = GetClientHolder(Ensemble.ConnectionString, 1.Seconds());
             var observer = GetObserver(holder);
-            
+
             VerifyObserverMessages(observer, ConnectionState.Disconnected);
         }
 
@@ -163,9 +164,10 @@ namespace Vostok.ZooKeeper.Client.Tests
             var observer = GetObserver(holder);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            VerifyObserverMessages(observer, 
-                Notification.CreateOnNext(ConnectionState.Disconnected), 
-                Notification.CreateOnNext(ConnectionState.Connected), 
+            VerifyObserverMessages(
+                observer,
+                Notification.CreateOnNext(ConnectionState.Disconnected),
+                Notification.CreateOnNext(ConnectionState.Connected),
                 Notification.CreateOnNext(ConnectionState.Disconnected),
                 Notification.CreateOnCompleted<ConnectionState>());
         }

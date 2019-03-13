@@ -1,7 +1,7 @@
 ﻿using org.apache.zookeeper;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal class ConnectionEvent
     {

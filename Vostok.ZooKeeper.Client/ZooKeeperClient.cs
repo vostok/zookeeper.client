@@ -8,6 +8,7 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.Client.Operations;
 using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
 

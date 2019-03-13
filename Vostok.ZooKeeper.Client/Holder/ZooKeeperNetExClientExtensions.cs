@@ -1,7 +1,7 @@
 ﻿using System;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal static class ZooKeeperNetExClientExtensions
     {

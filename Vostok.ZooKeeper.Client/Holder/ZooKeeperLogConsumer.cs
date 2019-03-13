@@ -3,7 +3,7 @@ using System.Diagnostics;
 using org.apache.utils;
 using Vostok.Logging.Abstractions;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal class ZooKeeperLogConsumer : ILogConsumer
     {
