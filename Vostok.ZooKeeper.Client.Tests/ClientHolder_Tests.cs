@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -201,6 +202,19 @@ namespace Vostok.ZooKeeper.Client.Tests
             holder.Dispose();
             var client = holder.GetConnectedClient().ShouldCompleteImmediately();
             client.Should().BeNull();
+        }
+
+        [Test]
+        public void Should_work_with_uri()
+        {
+            var uri = new Uri("http://localhost:" + Ensemble.Instances[0].ClientPort);
+            var settings = new ZooKeeperClientSettings(new[] {uri}, Log) { Timeout = DefaultTimeout };
+
+            var holder = new ClientHolder(settings, Log);
+            WaitForNewConnectedClient(holder);
+
+            holder.ConnectionState.Should().Be(ConnectionState.Connected);
+            holder.SessionId.Should().NotBe(0);
         }
     }
 }

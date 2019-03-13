@@ -29,9 +29,9 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
         /// </summary>
-        public ZooKeeperClient(ZooKeeperClientSettings settings)
+        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings)
         {
-            this.settings = settings;
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
             log = settings.Log.ForContext<ZooKeeperClient>();
 

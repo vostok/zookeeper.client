@@ -112,7 +112,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             var newClient = new Lazy<ZooKeeperNetExClient>(
                 () =>
                     new ZooKeeperNetExClient(
-                        settings.GetConnectionString(),
+                        settings.ConnectionStringProvider(),
                         settings.ToZooKeeperConnectionTimeout(),
                         newConnectionWatcher,
                         settings.CanBeReadOnly),
