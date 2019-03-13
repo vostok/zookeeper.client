@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Vostok.Commons.Helpers.Extensions;
 using Vostok.Commons.Helpers.Observable;
-using Vostok.Commons.Threading;
+using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Helpers;
@@ -16,6 +18,7 @@ namespace Vostok.ZooKeeper.Client
         public readonly ConnectionState ConnectionState;
         public readonly DateTime StateChanged = DateTime.UtcNow;
         public readonly ConnectionWatcher ConnectionWatcher;
+        public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>();
 
         public ClientHolderState(ZooKeeperNetExClient client, ConnectionWatcher connectionWatcher, ConnectionState connectionState)
         {
@@ -30,14 +33,13 @@ namespace Vostok.ZooKeeper.Client
         }
 
         public override string ToString() =>
-            $"{ConnectionState} changed at {StateChanged}";
+            $"{ConnectionState} at {StateChanged}";
     }
 
     internal class ClientHolder : IDisposable
     {
         private readonly ILog log;
         private readonly ZooKeeperClientSetup setup;
-        private readonly AsyncManualResetEvent connectSignal = new AsyncManualResetEvent(false);
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         private volatile ClientHolderState state;
@@ -62,48 +64,48 @@ namespace Vostok.ZooKeeper.Client
 
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
-            if (Disposed)
-                return null;
+            var budget = TimeBudget.StartNew(setup.Timeout);
 
-            var currentState = state;
-            ResetClientIfNeeded(currentState);
+            while (!budget.HasExpired && !Disposed)
+            {
+                ResetClientIfNeeded(state);
 
-            currentState = state;
-            if (IsConnected(currentState))
-                return currentState.Client;
+                var currentState = state;
+                if (IsConnected(currentState))
+                    return currentState.Client;
 
-            await WaitWithTimeout(connectSignal).ConfigureAwait(false);
+                if (!await currentState.NextState.Task.WaitAsync(budget.Remaining).ConfigureAwait(false))
+                    break;
+            }
 
-            currentState = state;
-            return IsConnected(currentState) ? currentState.Client : null;
+            return null;
         }
 
         public void Dispose()
         {
-            log.Debug($"Disposing client. Current state: {ConnectionState}.");
-
             var oldState = Interlocked.Exchange(ref state, null);
 
             if (oldState == null)
-            {
-                log.Debug("Disposed by someone else.");
                 return;
-            }
 
-            SentOnConnectionStateChanged(true);
+            SendOnConnectionStateChanged(true);
+
+            oldState.NextState.TrySetResult(null);
+
             oldState.Dispose();
+
             log.Debug("Disposed.");
         }
 
         private bool Disposed => state == null;
 
-        private bool IsConnected(ClientHolderState currentState)
+        private bool IsConnected([CanBeNull] ClientHolderState currentState)
         {
             return currentState != null &&
                    (currentState.ConnectionState == ConnectionState.Connected || setup.CanBeReadOnly && currentState.ConnectionState == ConnectionState.ConnectedReadonly);
         }
 
-        private void ResetClientIfNeeded(ClientHolderState currentState)
+        private void ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
         {
             if (currentState == null)
                 return;
@@ -113,11 +115,22 @@ namespace Vostok.ZooKeeper.Client
                 ResetClient(currentState);
         }
 
-        private void ResetClient(ClientHolderState currentState)
+        private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
+        {
+            if (Interlocked.CompareExchange(ref state, newState, currentState) != currentState)
+                return false;
+
+            SendOnConnectionStateChanged();
+
+            currentState.NextState.TrySetResult(newState);
+
+            log.Debug($"State changed. Old state: {currentState}. New state: {newState}.");
+            return true;
+        }
+
+        private void ResetClient([NotNull] ClientHolderState currentState)
         {
             log.Debug($"Reseting client. Current state: {currentState}.");
-            if (currentState == null)
-                return;
 
             var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
             var newClient = new ZooKeeperNetExClient(
@@ -128,17 +141,8 @@ namespace Vostok.ZooKeeper.Client
 
             var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected);
 
-            var exchangedState = Interlocked.CompareExchange(ref state, newState, currentState);
-            if (exchangedState != currentState)
-            {
-                log.Debug($"Reset is skipped. Current state: {exchangedState}.");
-                newState.Dispose();
-                return;
-            }
-
-            log.Debug($"Reset is successful. Old state: {currentState}. New state: {newState}.");
-            currentState.Dispose();
-            SentOnConnectionStateChanged();
+            if (ChangeState(currentState, newState))
+                currentState.Dispose();
         }
 
         private void ProcessEvent(ConnectionEvent connectionEvent)
@@ -147,39 +151,22 @@ namespace Vostok.ZooKeeper.Client
 
             var currentState = state;
 
-            if (!ReferenceEquals(connectionEvent.EventFrom, currentState?.ConnectionWatcher))
-            {
-                log.Info($"Skip stale event {connectionEvent} (watcher changed). Current state: {currentState}.");
+            if (currentState == null || !ReferenceEquals(connectionEvent.EventFrom, currentState.ConnectionWatcher))
                 return;
-            }
 
-            // ReSharper disable once PossibleNullReferenceException
             var newState = new ClientHolderState(currentState.Client, currentState.ConnectionWatcher, connectionEvent.NewConnectionState);
 
-            var exchangedState = Interlocked.CompareExchange(ref state, newState, currentState);
-            if (exchangedState != currentState)
-            {
-                log.Info($"Skip stale event {connectionEvent} (state changed). Current state: {exchangedState}.");
+            if (!ChangeState(currentState, newState))
                 return;
-            }
-
-            log.Debug($"Process event is successful. Old state: {exchangedState}. New state: {newState}.");
-
-            // Note(kungurtsev): double reset can shuffle currentState, so we use state.
-            SentOnConnectionStateChanged();
-
-            // Note(kungurtsev): double reset can shuffle connectSignal.Set and connectSignal.Reset with a little probability.
-            if (IsConnected(newState))
-                connectSignal.Set();
-            else if (IsConnected(exchangedState))
-                connectSignal.Reset();
 
             if (newState.ConnectionState == ConnectionState.Expired)
                 ResetClient(newState);
         }
 
-        private void SentOnConnectionStateChanged(bool complete = false)
+        private void SendOnConnectionStateChanged(bool complete = false)
         {
+            // Note(kungurtsev): double reset can shuffle currentState, so we use state.
+
             lock (OnConnectionStateChanged)
             {
                 var toSend = ConnectionState;
@@ -191,24 +178,6 @@ namespace Vostok.ZooKeeper.Client
                 if (complete)
                     OnConnectionStateChanged.Complete();
             }
-        }
-
-        private async Task<bool> WaitWithTimeout(Task task)
-        {
-            using (var cts = new CancellationTokenSource())
-            {
-                var delay = Task.Delay(setup.Timeout, cts.Token);
-
-                var result = await Task.WhenAny(task, delay).ConfigureAwait(false);
-                if (result == delay)
-                {
-                    return false;
-                }
-
-                cts.Cancel();
-            }
-
-            return true;
         }
     }
 }

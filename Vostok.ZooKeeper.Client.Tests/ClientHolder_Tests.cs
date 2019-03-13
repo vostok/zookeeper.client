@@ -139,8 +139,6 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             await KillSession(holder, Ensemble.ConnectionString);
 
-            WaitForNewConnectedClient(holder);
-
             VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Expired, ConnectionState.Disconnected, ConnectionState.Connected);
         }
 
@@ -172,8 +170,21 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void Dispose_should_not_wait_for_new_clients()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
+            WaitForNewConnectedClient(holder);
             holder.Dispose();
-            var client = holder.GetConnectedClient().ShouldCompleteIn(0.5.Seconds());
+            var client = holder.GetConnectedClient().ShouldCompleteImmediately();
+            client.Should().BeNull();
+        }
+
+        [Test]
+        public void Dispose_should_be_tolerant_to_multiple_calls()
+        {
+            var holder = GetClientHolder(Ensemble.ConnectionString);
+            WaitForNewConnectedClient(holder);
+            holder.Dispose();
+            holder.Dispose();
+            holder.Dispose();
+            var client = holder.GetConnectedClient().ShouldCompleteImmediately();
             client.Should().BeNull();
         }
     }
