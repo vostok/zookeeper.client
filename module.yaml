@@ -21,6 +21,7 @@ full-build > notests:
     - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble
+
   build:
     target: Vostok.ZooKeeper.Client.sln
     configuration: Release

@@ -41,6 +41,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
+        // ReSharper disable once UnusedParameter.Global
         public static void Touch(this ZooKeeperNetExClient client)
         {
         }
