@@ -16,23 +16,21 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            var localLog = log.ForContext(className);
-
             switch (severity)
             {
                 case TraceLevel.Error:
-                    localLog.Error(exception, message);
+                    log.Error(exception, message);
                     break;
                 case TraceLevel.Info:
-                    localLog.Info(exception, message);
+                    log.Info(exception, message);
                     break;
                 case TraceLevel.Off:
                     break;
                 case TraceLevel.Verbose:
-                    localLog.Debug(exception, message);
+                    log.Debug(exception, message);
                     break;
                 case TraceLevel.Warning:
-                    localLog.Warn(exception, message);
+                    log.Warn(exception, message);
                     break;
             }
         }

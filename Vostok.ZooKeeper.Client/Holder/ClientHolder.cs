@@ -20,9 +20,9 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private volatile ClientHolderState state;
 
-        public ClientHolder(ILog log, ZooKeeperClientSettings settings)
+        public ClientHolder(ZooKeeperClientSettings settings, ILog log)
         {
-            this.log = log.ForContext<ClientHolder>();
+            this.log = log;
             this.settings = settings;
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected);

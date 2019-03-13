@@ -27,16 +27,15 @@ namespace Vostok.ZooKeeper.Client
         private readonly WatcherWrapper watcherWrapper;
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="settings" />.
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
         /// </summary>
-        public ZooKeeperClient(ILog log, ZooKeeperClientSettings settings)
+        public ZooKeeperClient(ZooKeeperClientSettings settings)
         {
             this.settings = settings;
 
-            log = log.ForContext<ZooKeeperClient>();
-            this.log = log;
+            log = settings.Log.ForContext<ZooKeeperClient>();
 
-            clientHolder = new ClientHolder(log, settings);
+            clientHolder = new ClientHolder(settings, log);
             watcherWrapper = new WatcherWrapper(log);
         }
 
