@@ -22,21 +22,21 @@ namespace Vostok.ZooKeeper.Client
     public class ZooKeeperClient : IZooKeeperClient, IDisposable
     {
         private readonly ILog log;
-        private readonly ZooKeeperClientSetup setup;
+        private readonly ZooKeeperClientSettings settings;
         private readonly ClientHolder clientHolder;
         private readonly WatcherWrapper watcherWrapper;
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="setup" />.
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="settings" />.
         /// </summary>
-        public ZooKeeperClient(ILog log, ZooKeeperClientSetup setup)
+        public ZooKeeperClient(ILog log, ZooKeeperClientSettings settings)
         {
-            this.setup = setup;
+            this.settings = settings;
 
             log = log.ForContext<ZooKeeperClient>();
             this.log = log;
 
-            clientHolder = new ClientHolder(log, setup);
+            clientHolder = new ClientHolder(log, settings);
             watcherWrapper = new WatcherWrapper(log);
         }
 

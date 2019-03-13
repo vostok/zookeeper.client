@@ -102,14 +102,14 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
-            return new ZooKeeperClient(Log, setup);
+            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
+            return new ZooKeeperClient(Log, settings);
         }
 
         protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? DefaultTimeout};
-            return new ClientHolder(Log, setup);
+            var settings = new ZooKeeperClientSettings(connectionString) {Timeout = timeout ?? DefaultTimeout};
+            return new ClientHolder(Log, settings);
         }
 
         protected TestObserver<ConnectionState> GetObserver(ClientHolder holder)

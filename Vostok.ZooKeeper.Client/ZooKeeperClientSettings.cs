@@ -5,23 +5,23 @@ using Vostok.Commons.Time;
 namespace Vostok.ZooKeeper.Client
 {
     /// <summary>
-    /// Represents a ZooKeeper client setup.
+    /// Represents a ZooKeeper client settings.
     /// </summary>
     [PublicAPI]
-    public class ZooKeeperClientSetup
+    public class ZooKeeperClientSettings
     {
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSetup"/> using given <paramref name="connectionString"/>
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/>
         /// </summary>
-        public ZooKeeperClientSetup(string connectionString)
+        public ZooKeeperClientSettings(string connectionString)
         {
             GetConnectionString = () => connectionString;
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSetup"/> using given <paramref name="connectionString"/>
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/>
         /// </summary>
-        public ZooKeeperClientSetup(Func<string> connectionString)
+        public ZooKeeperClientSettings(Func<string> connectionString)
         {
             GetConnectionString = connectionString;
         }

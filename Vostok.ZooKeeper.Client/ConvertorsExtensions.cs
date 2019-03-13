@@ -90,6 +90,6 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSetup setup) => (int)setup.Timeout.TotalMilliseconds;
+        public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSettings settings) => (int)settings.Timeout.TotalMilliseconds;
     }
 }
