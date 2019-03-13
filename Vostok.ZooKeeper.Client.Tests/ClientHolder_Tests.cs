@@ -143,13 +143,26 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void OnConnectionStateChanged_should_observe_reconnected()
+        {
+            var holder = GetClientHolder(Ensemble.ConnectionString);
+            var observer = GetObserver(holder);
+
+            WaitForNewConnectedClient(holder);
+
+            Ensemble.Stop();
+            Ensemble.Start();
+
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Connected);
+        }
+
+        [Test]
         public void OnConnectionStateChanged_should_complete_on_dispose()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            WaitForDisconnectedState(holder);
             VerifyObserverMessages(observer, 
                 Notification.CreateOnNext(ConnectionState.Disconnected), 
                 Notification.CreateOnNext(ConnectionState.Connected), 

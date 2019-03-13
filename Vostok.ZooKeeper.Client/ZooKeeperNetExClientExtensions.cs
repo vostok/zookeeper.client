@@ -40,5 +40,9 @@ namespace Vostok.ZooKeeper.Client
                 return null;
             }
         }
+
+        public static void Touch(this ZooKeeperNetExClient client)
+        {
+        }
     }
 }
