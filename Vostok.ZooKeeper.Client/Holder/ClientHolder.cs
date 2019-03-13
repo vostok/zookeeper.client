@@ -124,6 +124,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 return;
 
             newClient.Value.Touch();
+
             currentState.Dispose();
         }
 

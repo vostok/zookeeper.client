@@ -7,6 +7,7 @@ notests *default:
 
   install:
     - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
+    - module zookeeper.client.abstractions
 
   deps:
     - vostok.commons.time/src
