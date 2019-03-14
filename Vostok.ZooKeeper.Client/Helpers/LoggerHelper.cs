@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Vostok.Logging.Abstractions;
+using Vostok.ZooKeeper.Client.Holder;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Helpers

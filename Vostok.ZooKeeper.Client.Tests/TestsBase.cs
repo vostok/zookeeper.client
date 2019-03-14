@@ -11,6 +11,7 @@ using Vostok.Commons.Testing.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
@@ -101,14 +102,14 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout};
-            return new ZooKeeperClient(Log, setup);
+            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString, Log) {Timeout = timeout ?? DefaultTimeout};
+            return new ZooKeeperClient(settings);
         }
 
         protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
         {
-            var setup = new ZooKeeperClientSetup(connectionString) {Timeout = timeout ?? DefaultTimeout};
-            return new ClientHolder(Log, setup);
+            var settings = new ZooKeeperClientSettings(connectionString, Log) {Timeout = timeout ?? DefaultTimeout};
+            return new ClientHolder(settings, Log);
         }
 
         protected TestObserver<ConnectionState> GetObserver(ClientHolder holder)

@@ -356,10 +356,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             KillSession(localClient, Ensemble.ConnectionString).GetAwaiter().GetResult();
 
             var result = localClient.Delete(new DeleteRequest(path));
-            if (createMode.IsEphemeral())
-                result.Status.Should().Be(ZooKeeperStatus.NodeNotFound);
-            else
-                result.Status.Should().Be(ZooKeeperStatus.Ok);
+            result.Status.Should().Be(createMode.IsEphemeral() ? ZooKeeperStatus.NodeNotFound : ZooKeeperStatus.Ok);
 
             watcher.ShouldNotBeTriggered();
         }

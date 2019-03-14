@@ -85,13 +85,11 @@ namespace Vostok.ZooKeeper.Client
                     return ConnectionState.ConnectedReadonly;
                 case Watcher.Event.KeeperState.Expired:
                     return ConnectionState.Expired;
-                case Watcher.Event.KeeperState.Disconnected:
-                case Watcher.Event.KeeperState.AuthFailed:
                 default:
                     return ConnectionState.Disconnected;
             }
         }
 
-        public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSetup setup) => (int)setup.Timeout.TotalMilliseconds;
+        public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSettings settings) => (int)settings.Timeout.TotalMilliseconds;
     }
 }

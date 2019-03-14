@@ -8,6 +8,7 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.Client.Operations;
 using CreateMode = Vostok.ZooKeeper.Client.Abstractions.Model.CreateMode;
 
@@ -21,21 +22,20 @@ namespace Vostok.ZooKeeper.Client
     public class ZooKeeperClient : IZooKeeperClient, IDisposable
     {
         private readonly ILog log;
-        private readonly ZooKeeperClientSetup setup;
+        private readonly ZooKeeperClientSettings settings;
         private readonly ClientHolder clientHolder;
         private readonly WatcherWrapper watcherWrapper;
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="log" /> and <paramref name="setup" />.
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
         /// </summary>
-        public ZooKeeperClient(ILog log, ZooKeeperClientSetup setup)
+        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings)
         {
-            this.setup = setup;
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
-            log = log.ForContext<ZooKeeperClient>();
-            this.log = log;
+            log = settings.Log.ForContext<ZooKeeperClient>();
 
-            clientHolder = new ClientHolder(log, setup);
+            clientHolder = new ClientHolder(settings, log);
             watcherWrapper = new WatcherWrapper(log);
         }
 

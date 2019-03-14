@@ -1,7 +1,7 @@
 ﻿using System;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Holder
 {
     internal static class ZooKeeperNetExClientExtensions
     {
@@ -39,6 +39,11 @@ namespace Vostok.ZooKeeper.Client
             {
                 return null;
             }
+        }
+
+        // ReSharper disable once UnusedParameter.Global
+        public static void Touch(this ZooKeeperNetExClient client)
+        {
         }
     }
 }
