@@ -69,6 +69,8 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public bool CanBeReadOnly { get; set; }
 
+        public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
+
         private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)
         {
             return string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));

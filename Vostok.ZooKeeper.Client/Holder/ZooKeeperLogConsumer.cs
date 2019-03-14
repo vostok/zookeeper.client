@@ -24,8 +24,6 @@ namespace Vostok.ZooKeeper.Client.Holder
                 case TraceLevel.Info:
                     log.Info(exception, message);
                     break;
-                case TraceLevel.Off:
-                    break;
                 case TraceLevel.Verbose:
                     log.Debug(exception, message);
                     break;
