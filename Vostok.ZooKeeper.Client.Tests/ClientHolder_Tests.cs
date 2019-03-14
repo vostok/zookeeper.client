@@ -31,8 +31,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             Ensemble.Stop();
 
             var holder = GetClientHolder(Ensemble.ConnectionString, 1.Seconds());
-            var client = holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
-            client.Should().BeNull();
+
+            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
@@ -42,15 +42,17 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void GetConnectedClient_should_be_reconnectable()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
-            var client1 = WaitForNewConnectedClient(holder);
+            WaitForNewConnectedClient(holder);
+            var sid1 = holder.SessionId;
 
             Ensemble.Stop();
             WaitForDisconnectedState(holder);
 
             Ensemble.Start();
-            var client2 = WaitForNewConnectedClient(holder);
+            WaitForNewConnectedClient(holder);
+            var sid2 = holder.SessionId;
 
-            client2.Should().BeSameAs(client1);
+            sid2.Should().Be(sid1);
         }
 
         [Test]
@@ -84,11 +86,13 @@ namespace Vostok.ZooKeeper.Client.Tests
         public async Task GetConnectedClient_should_return_new_after_expired()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
-            var client1 = WaitForNewConnectedClient(holder);
+            WaitForNewConnectedClient(holder);
+            var sid1 = holder.SessionId;
             await KillSession(holder, Ensemble.ConnectionString);
-            var client2 = WaitForNewConnectedClient(holder);
+            WaitForNewConnectedClient(holder);
+            var sid2 = holder.SessionId;
 
-            client2.Should().NotBe(client1);
+            sid2.Should().NotBe(sid1);
         }
 
         [Test]

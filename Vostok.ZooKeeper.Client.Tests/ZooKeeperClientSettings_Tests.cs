@@ -31,10 +31,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void ConnectionStringProvider_from_replicas()
         {
-            var str = "localhost:56736,localhost:56739,localhost:56742";
+            var str = "http://localhost:56736/,http://localhost:56739/,http://localhost:56742/";
             var replicas = str.Split(',').Select(x => new Uri(x)).ToArray();
             var settings = new ZooKeeperClientSettings(replicas, log);
-            settings.ConnectionStringProvider().Should().Be(str);
+            settings.ConnectionStringProvider().Should().Be("localhost:56736,localhost:56739,localhost:56742");
         }
 
         [Test]
@@ -43,7 +43,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var str = "http://localhost:56736/,http://localhost:56739/,http://localhost:56742/";
             var replicas = str.Split(',').Select(x => new Uri(x)).ToArray();
             var settings = new ZooKeeperClientSettings(() => replicas, log);
-            settings.ConnectionStringProvider().Should().Be(str);
+            settings.ConnectionStringProvider().Should().Be("localhost:56736,localhost:56739,localhost:56742");
         }
     }
 }

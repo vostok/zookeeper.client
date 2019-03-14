@@ -11,6 +11,7 @@ using Vostok.Commons.Testing.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
@@ -43,12 +44,10 @@ namespace Vostok.ZooKeeper.Client.Tests
             Ensemble.Dispose();
         }
 
-        protected static ZooKeeperNetExClient WaitForNewConnectedClient(ClientHolder holder)
+        protected static void WaitForNewConnectedClient(ClientHolder holder)
         {
-            var client = holder.GetConnectedClient().Result;
-            client.getState().Should().Be(ZooKeeperNetExClient.States.CONNECTED);
+            holder.GetConnectedClient().ShouldCompleteIn(DefaultTimeout).Should().NotBe(null);
             holder.ConnectionState.Should().Be(ConnectionState.Connected);
-            return client;
         }
 
         protected static void WaitForDisconnectedState(ZooKeeperClient client)
@@ -80,9 +79,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             if (holder.ConnectionState != ConnectionState.Connected)
                 return;
 
-            var client = await holder.GetConnectedClient();
-            var sessionId = client.getSessionId();
-            var sessionPassword = client.getSessionPasswd();
+            var sessionId = holder.SessionId;
+            var sessionPassword = holder.SessionPassword;
 
             await KillSession(connectionString, sessionId, sessionPassword, holder.OnConnectionStateChanged);
         }
