@@ -209,10 +209,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public void Should_work_with_uri()
+        public void Should_work_with_uri_provider()
         {
             var uri = new Uri("http://localhost:" + Ensemble.Instances[0].ClientPort);
-            var settings = new ZooKeeperClientSettings(new[] {uri}, Log) { Timeout = DefaultTimeout };
+            var settings = new ZooKeeperClientSettings(() => new[] {uri}, Log) { Timeout = DefaultTimeout };
 
             var holder = new ClientHolder(settings, Log);
             WaitForNewConnectedClient(holder);

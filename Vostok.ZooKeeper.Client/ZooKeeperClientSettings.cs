@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using JetBrains.Annotations;
+using Vostok.Commons.Collections;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 
@@ -37,7 +38,9 @@ namespace Vostok.ZooKeeper.Client
             if (replicasProvider == null)
                 throw new ArgumentNullException(nameof(replicasProvider));
 
-            ConnectionStringProvider = () => BuildConnectionString(replicasProvider());
+            var transform = new CachingTransform<Uri[], string>(BuildConnectionString);
+
+            ConnectionStringProvider = () => transform.Get(replicasProvider());
         }
 
         /// <summary>
