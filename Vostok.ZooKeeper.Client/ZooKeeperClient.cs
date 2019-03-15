@@ -66,19 +66,7 @@ namespace Vostok.ZooKeeper.Client
             if (result.Status != ZooKeeperStatus.NodeNotFound || !request.CreateParentsIfNeeded)
                 return result;
 
-            var parentPath = ZooKeeperPath.GetParentPath(request.Path);
-            if (parentPath == null)
-                return CreateResult.Unsuccessful(ZooKeeperStatus.BadArguments, request.Path, 
-                    new ArgumentException($"Can't get parent path for `{request.Path}`"));
-
-            result = await CreateAsync(new CreateRequest(parentPath, CreateMode.Persistent)).ConfigureAwait(false);
-            if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
-                return CreateResult.Unsuccessful(result.Status, request.Path, result.Exception);
-
-            // Note(kungurtsev): not infinity retry, if someone deletes our parent again.
-            result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
-
-            return result;
+            return await CreateWithParents(request).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -119,6 +107,29 @@ namespace Vostok.ZooKeeper.Client
                 clientHolder.Dispose();
         }
 
+        private async Task<CreateResult> CreateWithParents(CreateRequest request)
+        {
+            while (true)
+            {
+                var parentPath = ZooKeeperPath.GetParentPath(request.Path);
+                if (parentPath == null)
+                    return CreateResult.Unsuccessful(
+                        ZooKeeperStatus.BadArguments,
+                        request.Path,
+                        new ArgumentException($"Can't get parent path for `{request.Path}`"));
+
+                var result = await CreateAsync(new CreateRequest(parentPath, CreateMode.Persistent)).ConfigureAwait(false);
+                if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
+                    return CreateResult.Unsuccessful(result.Status, request.Path, result.Exception);
+
+                result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
+                if (result.Status != ZooKeeperStatus.NodeNotFound)
+                    return result;
+
+                // Note(kungurtsev): someone has deleted our parent since we checked, create it again.
+            }
+        }
+
         private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
         {
             while (true)
@@ -126,20 +137,21 @@ namespace Vostok.ZooKeeper.Client
                 var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
                 if (!children.IsSuccessful)
                 {
-                    // Even if status is ZooKeeperStatus.NodeNotFound, return it too, because someone else deleted node before us.
                     return DeleteResult.Unsuccessful(children.Status, request.Path, null);
                 }
 
                 foreach (var name in children.ChildrenNames)
                 {
-                    await DeleteWithChildren(new DeleteRequest($"{request.Path}/{name}")).ConfigureAwait(false);
+                    var deleted = await DeleteWithChildren(new DeleteRequest(ZooKeeperPath.Combine(request.Path, name))).ConfigureAwait(false);
+                    if (!deleted.IsSuccessful)
+                        return DeleteResult.Unsuccessful(deleted.Status, request.Path, deleted.Exception);
                 }
 
                 var result = await ExecuteOperation(new DeleteOperation(request)).ConfigureAwait(false);
                 if (result.Status != ZooKeeperStatus.NodeHasChildren)
                     return result;
 
-                // Someone has created a new child since we checked ... delete again.
+                // Note(kungurtsev): someone has created a new child since we checked, delete it again.
             }
         }
 
