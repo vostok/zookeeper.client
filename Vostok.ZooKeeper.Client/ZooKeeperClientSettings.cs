@@ -69,6 +69,9 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public bool CanBeReadOnly { get; set; }
 
+        /// <summary>
+        /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
+        /// </summary>
         public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
 
         private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)

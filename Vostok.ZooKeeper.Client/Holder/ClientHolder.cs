@@ -27,7 +27,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected);
 
-            LoggerHelper.InjectLogging(this.log.WithMinimumLevel(settings.InnerClientLogLevel));
+            ZooKeeperLog.SetIfNull(this.log.WithMinimumLevel(settings.InnerClientLogLevel));
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
