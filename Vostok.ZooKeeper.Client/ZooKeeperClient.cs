@@ -64,23 +64,16 @@ namespace Vostok.ZooKeeper.Client
             if (result.Status != ZooKeeperStatus.NodeNotFound || !request.CreateParentsIfNeeded)
                 return result;
 
-            var nodes = ZooKeeperPath.Split(request.Path);
-            for (var take = 1; take < nodes.Length; take++)
-            {
-                var path = ZooKeeperPath.Combine(nodes.Take(take).ToArray());
-                var exists = await ExistsAsync(new ExistsRequest(path)).ConfigureAwait(false);
+            var parentPath = ZooKeeperPath.GetParentPath(request.Path);
+            if (parentPath == null)
+                return CreateResult.Unsuccessful(ZooKeeperStatus.BadArguments, request.Path, 
+                    new ArgumentException($"Can't get parent path for `{request.Path}`"));
 
-                if (!exists.IsSuccessful)
-                    return new CreateOperation(request).CreateUnsuccessfulResult(exists.Status, exists.Exception);
+            result = await CreateAsync(new CreateRequest(parentPath, CreateMode.Persistent)).ConfigureAwait(false);
+            if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
+                return CreateResult.Unsuccessful(result.Status, request.Path, result.Exception);
 
-                if (exists.Exists)
-                    continue;
-
-                result = await ExecuteOperation(new CreateOperation(new CreateRequest(path, CreateMode.Persistent))).ConfigureAwait(false);
-                if (!result.IsSuccessful && result.Status != ZooKeeperStatus.NodeAlreadyExists)
-                    return new CreateOperation(request).CreateUnsuccessfulResult(result.Status, result.Exception);
-            }
-
+            // Note(kungurtsev): not infinity retry, if someone deletes our parent again.
             result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
 
             return result;
