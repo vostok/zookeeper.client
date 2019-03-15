@@ -7,7 +7,6 @@ using Vostok.Commons.Helpers.Observable;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
-using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Holder
@@ -18,6 +17,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly ZooKeeperClientSettings settings;
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
+        [CanBeNull]
         private volatile ClientHolderState state;
 
         public ClientHolder(ZooKeeperClientSettings settings, ILog log)
@@ -47,11 +47,14 @@ namespace Vostok.ZooKeeper.Client.Holder
                 ResetClientIfNeeded(state);
 
                 var currentState = state;
+                if (currentState == null)
+                    return null;
+
                 if (IsConnected(currentState))
                     return currentState.Client;
 
                 if (!await currentState.NextState.Task.WaitAsync(budget.Remaining).ConfigureAwait(false))
-                    break;
+                    return null;
             }
 
             return null;
