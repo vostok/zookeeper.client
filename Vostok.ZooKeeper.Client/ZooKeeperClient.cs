@@ -90,28 +90,20 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <inheritdoc />
-        public async Task<SetDataResult> SetDataAsync(SetDataRequest request)
-        {
-            return await ExecuteOperation(new SetDataOperation(request)).ConfigureAwait(false);
-        }
+        public Task<SetDataResult> SetDataAsync(SetDataRequest request) =>
+            ExecuteOperation(new SetDataOperation(request));
 
         /// <inheritdoc />
-        public async Task<ExistsResult> ExistsAsync(ExistsRequest request)
-        {
-            return await ExecuteOperation(new ExistsOperation(request, watcherWrapper)).ConfigureAwait(false);
-        }
+        public Task<ExistsResult> ExistsAsync(ExistsRequest request) =>
+            ExecuteOperation(new ExistsOperation(request, watcherWrapper));
 
         /// <inheritdoc />
-        public async Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request)
-        {
-            return await ExecuteOperation(new GetChildrenOperation(request, watcherWrapper)).ConfigureAwait(false);
-        }
+        public Task<GetChildrenResult> GetChildrenAsync(GetChildrenRequest request) =>
+            ExecuteOperation(new GetChildrenOperation(request, watcherWrapper));
 
         /// <inheritdoc />
-        public async Task<GetDataResult> GetDataAsync(GetDataRequest request)
-        {
-            return await ExecuteOperation(new GetDataOperation(request, watcherWrapper)).ConfigureAwait(false);
-        }
+        public Task<GetDataResult> GetDataAsync(GetDataRequest request) =>
+            ExecuteOperation(new GetDataOperation(request, watcherWrapper));
 
         /// <summary>
         /// <para>Dispose this client object.</para>
