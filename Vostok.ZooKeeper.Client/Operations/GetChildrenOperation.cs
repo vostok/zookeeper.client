@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Client.Helpers;
 
 namespace Vostok.ZooKeeper.Client.Operations
 {
@@ -20,7 +21,7 @@ namespace Vostok.ZooKeeper.Client.Operations
         {
             var result = await client.getChildrenAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
 
-            return GetChildrenResult.Successful(Request.Path, result.Children, result.Stat.FromZooKeeperStat());
+            return GetChildrenResult.Successful(Request.Path, result.Children, result.Stat.ToNodeStat());
         }
 
         public override GetChildrenResult CreateUnsuccessfulResult(ZooKeeperStatus status, Exception exception) =>

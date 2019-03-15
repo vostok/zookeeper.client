@@ -8,6 +8,7 @@ using Vostok.Commons.Threading;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Holder
@@ -116,7 +117,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 () =>
                     new ZooKeeperNetExClient(
                         settings.ConnectionStringProvider(),
-                        settings.ToZooKeeperConnectionTimeout(),
+                        settings.ToInnerConnectionTimeout(),
                         newConnectionWatcher,
                         settings.CanBeReadOnly),
                 LazyThreadSafetyMode.ExecutionAndPublication);

@@ -31,7 +31,7 @@ namespace Vostok.ZooKeeper.Client.Operations
                 return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, e);
             }
 
-            var newPath = await client.createAsync(Request.Path, Request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, Request.CreateMode.ToZooKeeperMode()).ConfigureAwait(false);
+            var newPath = await client.createAsync(Request.Path, Request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, TypesHelper.ToInnerCreateMode(Request.CreateMode)).ConfigureAwait(false);
             return CreateResult.Successful(Request.Path, newPath);
         }
 

@@ -1,5 +1,6 @@
 ﻿using org.apache.zookeeper;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Helpers;
 
 namespace Vostok.ZooKeeper.Client.Holder
 {
@@ -14,7 +15,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             EventFrom = eventFrom;
         }
 
-        public ConnectionState NewConnectionState => Event.getState().FromZooKeeperState();
+        public ConnectionState NewConnectionState => Event.getState().ToConnectionState();
 
         public override string ToString() => Event.ToString();
     }

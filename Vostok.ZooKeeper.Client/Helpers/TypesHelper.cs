@@ -4,11 +4,13 @@ using org.apache.zookeeper.data;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
 
-namespace Vostok.ZooKeeper.Client
+namespace Vostok.ZooKeeper.Client.Helpers
 {
-    internal static class ConvertorsExtensions
+    internal static class TypesHelper
     {
-        public static CreateMode ToZooKeeperMode(this Abstractions.Model.CreateMode mode)
+        public static int ToInnerConnectionTimeout(this ZooKeeperClientSettings settings) => (int)settings.Timeout.TotalMilliseconds;
+
+        public static CreateMode ToInnerCreateMode(this Abstractions.Model.CreateMode mode)
         {
             switch (mode)
             {
@@ -25,9 +27,9 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        public static NodeStat FromZooKeeperStat(this Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
+        public static NodeStat ToNodeStat(this Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
 
-        public static ZooKeeperStatus FromZooKeeperException(this KeeperException exception)
+        public static ZooKeeperStatus ToZooKeeperStatus(this KeeperException exception)
         {
             switch (exception.getCode())
             {
@@ -58,7 +60,7 @@ namespace Vostok.ZooKeeper.Client
             return ZooKeeperStatus.UnknownError;
         }
 
-        public static NodeChangedEventType FromZooKeeperEventType(this Watcher.Event.EventType type)
+        public static NodeChangedEventType ToNodeChangedEventType(this Watcher.Event.EventType type)
         {
             switch (type)
             {
@@ -75,7 +77,7 @@ namespace Vostok.ZooKeeper.Client
             }
         }
 
-        public static ConnectionState FromZooKeeperState(this Watcher.Event.KeeperState state)
+        public static ConnectionState ToConnectionState(this Watcher.Event.KeeperState state)
         {
             switch (state)
             {
@@ -89,7 +91,5 @@ namespace Vostok.ZooKeeper.Client
                     return ConnectionState.Disconnected;
             }
         }
-
-        public static int ToZooKeeperConnectionTimeout(this ZooKeeperClientSettings settings) => (int)settings.Timeout.TotalMilliseconds;
     }
 }

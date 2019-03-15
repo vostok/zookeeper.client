@@ -2,6 +2,7 @@
 using org.apache.zookeeper;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Helpers;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -20,7 +21,7 @@ namespace Vostok.ZooKeeper.Client
         {
             log.Debug($"Recieved node event {@event}");
             // Note(kungurtsev): we ignore connection state changed events, because client holder can reset client.
-            return @event.get_Type() == Event.EventType.None ? Task.CompletedTask : watcher.ProcessEvent(@event.get_Type().FromZooKeeperEventType(), @event.getPath());
+            return @event.get_Type() == Event.EventType.None ? Task.CompletedTask : watcher.ProcessEvent(@event.get_Type().ToNodeChangedEventType(), @event.getPath());
         }
     }
 }
