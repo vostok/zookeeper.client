@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Vostok.Commons.Helpers.Extensions;
 using Vostok.Commons.Helpers.Observable;
+using Vostok.Commons.Threading;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
@@ -15,6 +16,7 @@ namespace Vostok.ZooKeeper.Client.Holder
     {
         private readonly ILog log;
         private readonly ZooKeeperClientSettings settings;
+        private readonly AtomicBoolean isDisposed = false;
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         [CanBeNull]
@@ -42,7 +44,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             var budget = TimeBudget.StartNew(settings.Timeout);
 
-            while (!budget.HasExpired && !Disposed)
+            while (!budget.HasExpired)
             {
                 ResetClientIfNeeded(state);
 
@@ -62,21 +64,19 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void Dispose()
         {
-            var oldState = Interlocked.Exchange(ref state, null);
+            if (isDisposed.TrySetTrue())
+            {
+                var oldState = Interlocked.Exchange(ref state, null);
+                
+                SendOnConnectionStateChanged(true);
 
-            if (oldState == null)
-                return;
+                oldState.NextState.TrySetResult(null);
 
-            SendOnConnectionStateChanged(true);
+                oldState.Dispose();
 
-            oldState.NextState.TrySetResult(null);
-
-            oldState.Dispose();
-
-            log.Debug("Disposed.");
+                log.Debug("Disposed.");
+            }
         }
-
-        private bool Disposed => state == null;
 
         private bool IsConnected([CanBeNull] ClientHolderState currentState)
         {

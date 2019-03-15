@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using org.apache.zookeeper;
+using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
@@ -25,6 +26,7 @@ namespace Vostok.ZooKeeper.Client
         private readonly ZooKeeperClientSettings settings;
         private readonly ClientHolder clientHolder;
         private readonly WatcherWrapper watcherWrapper;
+        private readonly AtomicBoolean isDisposed = false;
 
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
@@ -113,8 +115,8 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public void Dispose()
         {
-            log.Debug("Disposing client.");
-            clientHolder.Dispose();
+            if (isDisposed.TrySetTrue())
+                clientHolder.Dispose();
         }
 
         private async Task<DeleteResult> DeleteWithChildren(DeleteRequest request)
