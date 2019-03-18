@@ -73,6 +73,11 @@ namespace Vostok.ZooKeeper.Client
         public bool CanBeReadOnly { get; set; }
 
         /// <summary>
+        /// Capacity of <see cref="RecyclingBoundedCache{TKey,TValue}"/> for watchers.
+        /// </summary>
+        public int WatchersCacheCapacity { get; set; } = 10_000;
+
+        /// <summary>
         /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
         /// </summary>
         public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
