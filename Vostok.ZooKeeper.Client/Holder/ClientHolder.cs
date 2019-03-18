@@ -87,13 +87,15 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private void ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
         {
-            if (currentState == null)
-                return;
-
-            if (currentState.Client == null
-                || !IsConnected(currentState) && DateTime.UtcNow - currentState.StateChanged > settings.Timeout
-                || currentState.ConnectionString != settings.ConnectionStringProvider())
+            if (currentState != null && NeedToResetClient(currentState))
                 ResetClient(currentState);
+        }
+
+        private bool NeedToResetClient([NotNull] ClientHolderState currentState)
+        {
+            return currentState.Client == null
+                   || !IsConnected(currentState) && DateTime.UtcNow - currentState.StateChanged > settings.Timeout
+                   || currentState.ConnectionString != settings.ConnectionStringProvider();
         }
 
         private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
