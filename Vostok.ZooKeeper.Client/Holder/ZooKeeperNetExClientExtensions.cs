@@ -9,7 +9,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             try
             {
-                client.closeAsync().Wait();
+                client?.closeAsync().Wait();
             }
             catch (Exception)
             {

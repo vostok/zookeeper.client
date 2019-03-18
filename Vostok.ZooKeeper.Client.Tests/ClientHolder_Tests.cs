@@ -254,6 +254,14 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void Dispose_should_be_tolerant_to_null_client()
+        {
+            var holder = GetClientHolder(null, 1.Seconds());
+            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
+            holder.Dispose();
+        }
+
+        [Test]
         public void Should_work_with_uri_provider()
         {
             var settings = new ZooKeeperClientSettings(() => Ensemble.Topology, Log) {Timeout = DefaultTimeout};
