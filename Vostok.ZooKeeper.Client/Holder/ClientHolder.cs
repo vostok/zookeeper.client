@@ -113,8 +113,14 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             log.Debug($"Reseting client. Current state: {currentState}.");
 
-            var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
             var newConnectionString = settings.ConnectionStringProvider();
+            if (string.IsNullOrEmpty(newConnectionString))
+            {
+                log.Error("Failed to resolve any ZooKeeper replicas.");
+                return;
+            }
+
+            var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
             var newClient = new Lazy<ZooKeeperNetExClient>(
                 () => new ZooKeeperNetExClient(
                     newConnectionString,
@@ -128,7 +134,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (!ChangeState(currentState, newState))
                 return;
 
-            newClient.Value.Touch();
+            newState.Client?.Touch();
 
             currentState.Dispose();
         }

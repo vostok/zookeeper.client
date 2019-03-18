@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
@@ -22,7 +23,21 @@ namespace Vostok.ZooKeeper.Client.Holder
             ConnectionWatcher = connectionWatcher;
         }
 
-        public ZooKeeperNetExClient Client => LazyClient?.Value;
+        [CanBeNull]
+        public ZooKeeperNetExClient Client
+        {
+            get
+            {
+                try
+                {
+                    return LazyClient?.Value;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+        }
 
         public void Dispose()
         {

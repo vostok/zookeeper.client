@@ -39,6 +39,17 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void GetConnectedClient_should_be_null_with_empty_connection_string()
+        {
+            var holder = GetClientHolder(null, 1.Seconds());
+
+            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
+
+            holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
+            holder.SessionId.Should().Be(0);
+        }
+
+        [Test]
         public void GetConnectedClient_should_be_reconnectable()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
