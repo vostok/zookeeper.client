@@ -60,9 +60,15 @@
   </Target>
   <Target Name="SetupILRepackProperties" AfterTargets="Build">
     <PropertyGroup>
-      <PubDirWithoutSlash>$(ProjectDir)bin/Publish/$(TargetFramework)/publish</PubDirWithoutSlash>
+      <PubDirWithoutSlash>$(ProjectDir)bin\Publish\$(TargetFramework)\publish</PubDirWithoutSlash>
       <PubDir>$(PubDirWithoutSlash)\</PubDir>
     </PropertyGroup>
+  </Target>
+  <Target Name="CleanPublishDir" AfterTargets="SetupILRepackProperties" Condition="'$(Configuration)' != 'Publish'">
+    <ItemGroup>
+      <OldPubDirFiles Include="$(PubDir)**/*" />
+    </ItemGroup>
+    <Delete Files="@(OldPubDirFiles)" />
   </Target>
   <Target Name="Publishing" AfterTargets="SetupILRepackProperties" Condition="'$(Configuration)' != 'Publish'">
     <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet publish -c Publish -f $(TargetFramework)" />
@@ -70,7 +76,10 @@
   <Target Name="RepackAssemblies" AfterTargets="Publishing" Condition="'$(Configuration)' != 'Publish'">
     <ItemGroup>
       <MergeAssemblies Include="$(ProjectDir)$(OutputPath)$(AssemblyName).dll" />
-      <MergeAssemblies Include="$(PubDir)ZooKeeperNetEx.dll" />
+      <MergeAssemblies Include="$(PubDir)*.dll" />
+      <MergeAssemblies Remove="$(PubDir)$(AssemblyName).dll" />
+      <MergeAssemblies Remove="$(PubDir)Vostok.Logging.Abstractions.dll" />
+      <MergeAssemblies Remove="$(PubDir)Vostok.ZooKeeper.Client.Abstractions.dll" />
     </ItemGroup>
     <Exec WorkingDirectory="$(PubDir)" Command="$(ILRepackExecutable) /internalize /renameInternalized /log:ilrepack.log /lib:&quot;$(PubDirWithoutSlash)&quot; /out:$(ProjectDir)$(OutputPath)$(AssemblyName).dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
   </Target>
