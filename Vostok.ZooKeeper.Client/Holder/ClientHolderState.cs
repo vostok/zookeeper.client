@@ -10,10 +10,10 @@ namespace Vostok.ZooKeeper.Client.Holder
     {
         public readonly Lazy<ZooKeeperNetExClient> LazyClient;
         public readonly ConnectionState ConnectionState;
-        public readonly DateTime StateChanged = DateTime.UtcNow;
         public readonly ConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>();
         public readonly string ConnectionString;
+        private readonly DateTime stateChanged = DateTime.UtcNow;
 
         public ClientHolderState(Lazy<ZooKeeperNetExClient> client, ConnectionWatcher connectionWatcher, ConnectionState connectionState, string connectionString)
         {
@@ -42,7 +42,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         public bool NeedToResetClient(ZooKeeperClientSettings settings)
         {
             return Client == null
-                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - StateChanged > settings.Timeout
+                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - stateChanged > settings.Timeout
                    || ConnectionString != settings.ConnectionStringProvider();
         }
 
@@ -52,6 +52,6 @@ namespace Vostok.ZooKeeper.Client.Holder
         }
 
         public override string ToString() =>
-            $"{ConnectionState} at {StateChanged.ToLocalTime()}";
+            $"{ConnectionState} at {stateChanged.ToLocalTime()}";
     }
 }
