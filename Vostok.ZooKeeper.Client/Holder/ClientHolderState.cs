@@ -45,6 +45,6 @@ namespace Vostok.ZooKeeper.Client.Holder
         }
 
         public override string ToString() =>
-            $"{ConnectionState} at {StateChanged}";
+            $"{ConnectionState} at {StateChanged.ToLocalTime()}";
     }
 }
