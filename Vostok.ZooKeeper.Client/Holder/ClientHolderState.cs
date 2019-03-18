@@ -39,6 +39,13 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
+        public bool NeedToResetClient(ZooKeeperClientSettings settings)
+        {
+            return Client == null
+                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - StateChanged > settings.Timeout
+                   || ConnectionString != settings.ConnectionStringProvider();
+        }
+
         public void Dispose()
         {
             Client.Dispose();

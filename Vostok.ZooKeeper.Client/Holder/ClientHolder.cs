@@ -53,7 +53,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 if (currentState == null)
                     return null;
 
-                if (IsConnected(currentState))
+                if (currentState.ConnectionState.IsConnected(settings.CanBeReadOnly))
                     return currentState.Client;
 
                 if (!await currentState.NextState.Task.WaitAsync(budget.Remaining).ConfigureAwait(false))
@@ -79,23 +79,10 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
-        private bool IsConnected([CanBeNull] ClientHolderState currentState)
-        {
-            return currentState != null &&
-                   (currentState.ConnectionState == ConnectionState.Connected || settings.CanBeReadOnly && currentState.ConnectionState == ConnectionState.ConnectedReadonly);
-        }
-
         private void ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
         {
-            if (currentState != null && NeedToResetClient(currentState))
+            if (currentState != null && currentState.NeedToResetClient(settings))
                 ResetClient(currentState);
-        }
-
-        private bool NeedToResetClient([NotNull] ClientHolderState currentState)
-        {
-            return currentState.Client == null
-                   || !IsConnected(currentState) && DateTime.UtcNow - currentState.StateChanged > settings.Timeout
-                   || currentState.ConnectionString != settings.ConnectionStringProvider();
         }
 
         private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
