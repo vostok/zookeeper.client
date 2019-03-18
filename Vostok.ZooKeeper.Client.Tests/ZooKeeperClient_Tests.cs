@@ -390,6 +390,15 @@ namespace Vostok.ZooKeeper.Client.Tests
             result.Stat.Version.Should().Be(0);
         }
 
+        [TestCase("without_slash_at_the_beggingig")]
+        [TestCase("/with_extra_slash_at_the_ending/")]
+        public async Task Exists_should_return_BadArguments_for_bad_path(string path)
+        {
+            var createResult = await client.ExistsAsync(path);
+            createResult.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            createResult.Exception.Should().BeOfType<ArgumentException>();
+        }
+
         [Test]
         public async Task Delete_should_delete_leaf()
         {

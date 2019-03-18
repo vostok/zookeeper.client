@@ -22,15 +22,6 @@ namespace Vostok.ZooKeeper.Client.Operations
             if (!NodeHelper.ValidateDataSize(Request.Data))
                 return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, NodeHelper.DataSizeLimitExceededException(Request.Data));
 
-            try
-            {
-                PathUtils.validatePath(Request.Path, Request.CreateMode.IsSequential());
-            }
-            catch (ArgumentException e)
-            {
-                return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, e);
-            }
-
             var newPath = await client.createAsync(Request.Path, Request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, Request.CreateMode.ToInnerCreateMode()).ConfigureAwait(false);
             return CreateResult.Successful(Request.Path, newPath);
         }
