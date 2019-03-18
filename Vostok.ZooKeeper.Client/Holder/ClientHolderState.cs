@@ -12,11 +12,13 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly DateTime StateChanged = DateTime.UtcNow;
         public readonly ConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>();
+        public readonly string ConnectionString;
 
-        public ClientHolderState(Lazy<ZooKeeperNetExClient> client, ConnectionWatcher connectionWatcher, ConnectionState connectionState)
+        public ClientHolderState(Lazy<ZooKeeperNetExClient> client, ConnectionWatcher connectionWatcher, ConnectionState connectionState, string connectionString)
         {
             LazyClient = client;
             ConnectionState = connectionState;
+            ConnectionString = connectionString;
             ConnectionWatcher = connectionWatcher;
         }
 

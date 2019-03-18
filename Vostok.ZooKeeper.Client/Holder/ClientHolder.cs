@@ -28,7 +28,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.log = log;
             this.settings = settings;
 
-            state = new ClientHolderState(null, null, ConnectionState.Disconnected);
+            state = new ClientHolderState(null, null, ConnectionState.Disconnected, null);
 
             ZooKeeperLog.SetIfNull(this.log.WithMinimumLevel(settings.InnerClientLogLevel));
         }
@@ -68,7 +68,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (isDisposed.TrySetTrue())
             {
                 var oldState = Interlocked.Exchange(ref state, null);
-                
+
                 SendOnConnectionStateChanged(true);
 
                 oldState.NextState.TrySetResult(null);
@@ -90,8 +90,9 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (currentState == null)
                 return;
 
-            if (currentState.Client == null ||
-                !IsConnected(currentState) && DateTime.UtcNow - currentState.StateChanged > settings.Timeout)
+            if (currentState.Client == null
+                || !IsConnected(currentState) && DateTime.UtcNow - currentState.StateChanged > settings.Timeout
+                || currentState.ConnectionString != settings.ConnectionStringProvider())
                 ResetClient(currentState);
         }
 
@@ -113,16 +114,16 @@ namespace Vostok.ZooKeeper.Client.Holder
             log.Debug($"Reseting client. Current state: {currentState}.");
 
             var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
+            var newConnectionString = settings.ConnectionStringProvider();
             var newClient = new Lazy<ZooKeeperNetExClient>(
-                () =>
-                    new ZooKeeperNetExClient(
-                        settings.ConnectionStringProvider(),
-                        settings.ToInnerConnectionTimeout(),
-                        newConnectionWatcher,
-                        settings.CanBeReadOnly),
+                () => new ZooKeeperNetExClient(
+                    newConnectionString,
+                    settings.ToInnerConnectionTimeout(),
+                    newConnectionWatcher,
+                    settings.CanBeReadOnly),
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-            var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected);
+            var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString);
 
             if (!ChangeState(currentState, newState))
                 return;
@@ -141,7 +142,11 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (currentState == null || !ReferenceEquals(connectionEvent.EventFrom, currentState.ConnectionWatcher))
                 return;
 
-            var newState = new ClientHolderState(currentState.LazyClient, currentState.ConnectionWatcher, connectionEvent.NewConnectionState);
+            var newState = new ClientHolderState(
+                currentState.LazyClient,
+                currentState.ConnectionWatcher,
+                connectionEvent.NewConnectionState,
+                currentState.ConnectionString);
 
             if (!ChangeState(currentState, newState))
                 return;

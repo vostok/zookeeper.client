@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,6 +79,40 @@ namespace Vostok.ZooKeeper.Client.Tests
 
                     WaitForNewConnectedClient(holder);
                 }
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
+        public void GetConnectedClient_should_reconnect_to_new_ensemble_after_connection_string_change(bool useUri)
+        {
+            using (var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))
+            {
+                var currentEnsemble = ensemble1;
+                var settings = useUri
+                    ? new ZooKeeperClientSettings(() => currentEnsemble.Topology, Log) {Timeout = DefaultTimeout}
+                    : new ZooKeeperClientSettings(() => currentEnsemble.ConnectionString, Log) {Timeout = DefaultTimeout};
+
+                var holder = new ClientHolder(settings, Log);
+                var observer = GetObserver(holder);
+
+                WaitForNewConnectedClient(holder);
+                var sid1 = holder.SessionId;
+
+                using (var ensemble2 = ZooKeeperEnsemble.DeployNew(11, 1, Log))
+                {
+                    currentEnsemble = ensemble2;
+
+                    WaitForNewConnectedClient(holder);
+                    ensemble1.Stop();
+                    WaitForNewConnectedClient(holder);
+
+                    var sid2 = holder.SessionId;
+                    sid2.Should().NotBe(sid1);
+                }
+
+                VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Connected);
             }
         }
 
@@ -211,8 +245,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void Should_work_with_uri_provider()
         {
-            var uri = new Uri("http://localhost:" + Ensemble.Instances[0].ClientPort);
-            var settings = new ZooKeeperClientSettings(() => new[] {uri}, Log) { Timeout = DefaultTimeout };
+            var settings = new ZooKeeperClientSettings(() => Ensemble.Topology, Log) {Timeout = DefaultTimeout};
 
             var holder = new ClientHolder(settings, Log);
             WaitForNewConnectedClient(holder);
