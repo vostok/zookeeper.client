@@ -528,6 +528,33 @@ namespace Vostok.ZooKeeper.Client.Tests
             result.Status.Should().Be(ZooKeeperStatus.NotConnected);
         }
 
+        [Test]
+        public async Task Should_works_with_multiple_clients()
+        {
+            var clients = Enumerable.Range(0, 3).Select(_ => GetClient()).ToList();
+
+            var path = "/multiple_clients";
+            await client.CreateAsync(path, CreateMode.Persistent);
+
+            var times = 0;
+
+            foreach (var c in clients)
+            {
+                await c.SetDataAsync(path, new[] { (byte)++times });
+                await KillSession(c, Ensemble.ConnectionString);
+                await c.SetDataAsync(path, new[] { (byte)++times });
+            }
+
+            Ensemble.Stop();
+            Ensemble.Start();
+
+            foreach (var c in clients)
+            {
+                var data = await c.GetDataAsync(path);
+                data.Data.Should().BeEquivalentTo(new[] { (byte)times });
+            }
+        }
+
         private static async Task VerifyNodeCreated(ZooKeeperClient client, string path)
         {
             var node = await client.GetDataAsync(path);

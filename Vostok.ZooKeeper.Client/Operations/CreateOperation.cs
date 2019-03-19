@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
-using org.apache.zookeeper.common;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
