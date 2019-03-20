@@ -75,7 +75,7 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Capacity of <see cref="RecyclingBoundedCache{TKey,TValue}"/> for watchers.
         /// </summary>
-        public int WatchersCacheCapacity { get; set; } = 10_000;
+        public int WatchersCacheCapacity { get; set; } = 1000;
 
         /// <summary>
         /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
@@ -83,8 +83,6 @@ namespace Vostok.ZooKeeper.Client
         public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
 
         private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)
-        {
-            return string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
-        }
+            => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
 }
