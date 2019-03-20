@@ -7,7 +7,7 @@ notests *default:
 
   install:
     - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
-    - module zookeeper.client.abstractions
+    - module vostok.zookeeper.client.abstractions
 
   deps:
     - vostok.commons.time/src
@@ -19,6 +19,7 @@ notests *default:
 
 full-build > notests:
   deps:
+    - vostok.zookeeper.testing
     - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble

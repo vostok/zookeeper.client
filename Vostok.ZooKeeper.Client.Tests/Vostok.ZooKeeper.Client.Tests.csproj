@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\vostok.devtools\library-common-props\Test-Project.props" />
   <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
@@ -41,6 +40,10 @@
     <Reference Include="Vostok.ZooKeeper.Client.Abstractions">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.zookeeper.client.abstractions\Vostok.ZooKeeper.Client.Abstractions\bin\Release\netstandard2.0\Vostok.ZooKeeper.Client.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.ZooKeeper.Testing">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.zookeeper.testing\Vostok.ZooKeeper.Testing\bin\Release\netstandard2.0\Vostok.ZooKeeper.Testing.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
