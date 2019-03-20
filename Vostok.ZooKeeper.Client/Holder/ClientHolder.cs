@@ -88,19 +88,6 @@ namespace Vostok.ZooKeeper.Client.Holder
             return true;
         }
 
-        private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
-        {
-            if (Interlocked.CompareExchange(ref state, newState, currentState) != currentState)
-                return false;
-
-            SendOnConnectionStateChanged();
-
-            currentState.NextState.TrySetResult(newState);
-
-            log.Info("Connection state changed. Old: '{OldState}'. New: '{NewState}'.", currentState, newState);
-            return true;
-        }
-
         private bool ResetClient([NotNull] ClientHolderState currentState)
         {
             log.Info("Resetting client. Current state: '{CurrentState}'.", currentState);
@@ -129,6 +116,21 @@ namespace Vostok.ZooKeeper.Client.Holder
 
                 currentState.Dispose();
             }
+
+            return true;
+        }
+
+        private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
+        {
+            if (Interlocked.CompareExchange(ref state, newState, currentState) != currentState)
+                return false;
+
+            SendOnConnectionStateChanged();
+
+            currentState.NextState.TrySetResult(newState);
+
+            if (currentState.ConnectionState != newState.ConnectionState)
+                log.Info("Connection state changed. Old: '{OldState}'. New: '{NewState}'.", currentState, newState);
 
             return true;
         }
