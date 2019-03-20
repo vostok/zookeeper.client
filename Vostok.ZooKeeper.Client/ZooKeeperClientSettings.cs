@@ -14,27 +14,26 @@ namespace Vostok.ZooKeeper.Client
     public class ZooKeeperClientSettings
     {
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] string connectionString, [NotNull] ILog log)
-            : this(() => connectionString, log)
+        public ZooKeeperClientSettings([NotNull] string connectionString)
+            : this(() => connectionString)
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicas"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicas"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] [ItemNotNull] Uri[] replicas, [NotNull] ILog log)
-            : this(() => replicas, log)
+        public ZooKeeperClientSettings([NotNull] [ItemNotNull] Uri[] replicas)
+            : this(() => replicas)
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicasProvider"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicasProvider"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] Func<Uri[]> replicasProvider, [NotNull] ILog log)
+        public ZooKeeperClientSettings([NotNull] Func<Uri[]> replicasProvider)
         {
-            Log = log ?? throw new ArgumentNullException(nameof(log));
             if (replicasProvider == null)
                 throw new ArgumentNullException(nameof(replicasProvider));
 
@@ -44,18 +43,12 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionStringProvider"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionStringProvider"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] Func<string> connectionStringProvider, [NotNull] ILog log)
+        public ZooKeeperClientSettings([NotNull] Func<string> connectionStringProvider)
         {
-            Log = log ?? throw new ArgumentNullException(nameof(log));
             ConnectionStringProvider = connectionStringProvider ?? throw new ArgumentNullException(nameof(connectionStringProvider));
         }
-
-        /// <summary>
-        /// Client logger.
-        /// </summary>
-        public ILog Log { get; }
 
         /// <summary>
         /// Delegate for producing connection string.

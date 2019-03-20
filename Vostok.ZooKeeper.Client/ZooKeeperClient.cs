@@ -31,11 +31,10 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
         /// </summary>
-        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings)
+        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings, [CanBeNull] ILog log)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-
-            log = settings.Log.ForContext<ZooKeeperClient>();
+            this.log = (log ?? LogProvider.Get()).ForContext<ZooKeeperClient>();
 
             clientHolder = new ClientHolder(settings, log);
             watcherWrapper = new WatcherWrapper(settings.WatchersCacheCapacity, log);
