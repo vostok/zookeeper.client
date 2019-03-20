@@ -10,13 +10,12 @@ namespace Vostok.ZooKeeper.Client.Helpers
     {
         private static volatile ClientHolder owner;
 
-        public static bool Register(ClientHolder client, ILog log)
+        public static void Register(ClientHolder client, ILog log)
         {
             if (Interlocked.CompareExchange(ref owner, client, null) != null)
-                return false;
+                return;
 
             InjectLogging(log);
-            return true;
         }
 
         public static void Unregister(ClientHolder client)
