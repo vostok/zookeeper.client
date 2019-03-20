@@ -18,12 +18,11 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public override Task process(WatchedEvent @event)
         {
-            log.Debug($"Recieved event {@event}.");
-
             if (@event.get_Type() != Event.EventType.None)
                 return Task.CompletedTask;
 
             var connectionEvent = new ConnectionEvent(@event, this);
+
             action(connectionEvent);
 
             return Task.CompletedTask;

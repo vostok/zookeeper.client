@@ -160,8 +160,6 @@ namespace Vostok.ZooKeeper.Client
             where TRequest : ZooKeeperRequest
             where TResult : ZooKeeperResult
         {
-            log.Debug($"Trying to {operation.Request}.");
-
             TResult result;
             try
             {
@@ -185,8 +183,29 @@ namespace Vostok.ZooKeeper.Client
                 result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.UnknownError, e);
             }
 
-            log.Debug($"Result {result}.");
+            LogResult(operation.Request, result);
+
             return result;
+        }
+
+        private void LogResult<TRequest, TResult>(TRequest request, TResult result)
+            where TRequest : ZooKeeperRequest
+            where TResult : ZooKeeperResult
+        {
+            if (result.IsSuccessful)
+            {
+                log.Debug("Request '{Request}' has completed successfully.", request);
+            }
+            else
+            {
+                var messageTemplate = "Request '{Request}' has failed with status '{ResultStatus}'.";
+                var exception = result.Exception is KeeperException ? null : result.Exception;
+
+                if (result.Status.IsMundaneError())
+                    log.Info(messageTemplate, request, result.Status);
+                else
+                    log.Warn(exception, messageTemplate, request, result.Status);
+            }
         }
     }
 }
