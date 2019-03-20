@@ -138,7 +138,7 @@ namespace Vostok.ZooKeeper.Client
                 var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
                 if (!children.IsSuccessful)
                 {
-                    return DeleteResult.Unsuccessful(children.Status, request.Path, null);
+                    return DeleteResult.Unsuccessful(children.Status, request.Path, children.Exception);
                 }
 
                 foreach (var name in children.ChildrenNames)
