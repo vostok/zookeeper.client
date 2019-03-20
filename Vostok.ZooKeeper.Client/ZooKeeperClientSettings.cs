@@ -65,7 +65,7 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Session and connect timeout.
         /// </summary>
-        public TimeSpan Timeout { get; set; } = 5.Seconds();
+        public TimeSpan Timeout { get; set; } = 10.Seconds();
 
         /// <summary>
         /// Is allowed to go to read-only mode in case of partitioning.
