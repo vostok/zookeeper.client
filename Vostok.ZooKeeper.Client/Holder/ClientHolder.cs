@@ -30,7 +30,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected, null);
 
-            ZooKeeperLog.SetIfNull(this.log.WithMinimumLevel(settings.InnerClientLogLevel));
+            ZooKeeperLogInjector.Register(this, this.log);
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
@@ -47,7 +47,8 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             while (!budget.HasExpired)
             {
-                ResetClientIfNeeded(state);
+                if (!ResetClientIfNeeded(state))
+                    return null;
 
                 var currentState = state;
                 if (currentState == null)
@@ -75,14 +76,48 @@ namespace Vostok.ZooKeeper.Client.Holder
 
                 oldState.Dispose();
 
-                log.Debug("Disposed.");
+                ZooKeeperLogInjector.Unregister(this);
             }
         }
 
-        private void ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
+        private bool ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
         {
             if (currentState != null && currentState.NeedToResetClient(settings))
-                ResetClient(currentState);
+                return ResetClient(currentState);
+
+            return true;
+        }
+
+        private bool ResetClient([NotNull] ClientHolderState currentState)
+        {
+            log.Info("Resetting client. Current state: '{CurrentState}'.", currentState);
+
+            var newConnectionString = settings.ConnectionStringProvider();
+            if (string.IsNullOrEmpty(newConnectionString))
+            {
+                log.Error("Failed to resolve any ZooKeeper replicas.");
+                return false;
+            }
+
+            var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
+            var newClient = new Lazy<ZooKeeperNetExClient>(
+                () => new ZooKeeperNetExClient(
+                    newConnectionString,
+                    settings.ToInnerConnectionTimeout(),
+                    newConnectionWatcher,
+                    settings.CanBeReadOnly),
+                LazyThreadSafetyMode.ExecutionAndPublication);
+
+            var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString);
+
+            if (ChangeState(currentState, newState))
+            {
+                newState.Client?.Touch();
+
+                currentState.Dispose();
+            }
+
+            return true;
         }
 
         private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
@@ -94,43 +129,15 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             currentState.NextState.TrySetResult(newState);
 
-            log.Debug($"State changed. Old state: {currentState}. New state: {newState}.");
+            if (currentState.ConnectionState != newState.ConnectionState)
+                log.Info("Connection state changed. Old: '{OldState}'. New: '{NewState}'.", currentState, newState);
+
             return true;
-        }
-
-        private void ResetClient([NotNull] ClientHolderState currentState)
-        {
-            log.Debug($"Reseting client. Current state: {currentState}.");
-
-            var newConnectionString = settings.ConnectionStringProvider();
-            if (string.IsNullOrEmpty(newConnectionString))
-            {
-                log.Error("Failed to resolve any ZooKeeper replicas.");
-                return;
-            }
-
-            var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
-            var newClient = new Lazy<ZooKeeperNetExClient>(
-                () => new ZooKeeperNetExClient(
-                    newConnectionString,
-                    settings.ToInnerConnectionTimeout(),
-                    newConnectionWatcher,
-                    settings.CanBeReadOnly),
-                LazyThreadSafetyMode.ExecutionAndPublication);
-
-            var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString);
-
-            if (!ChangeState(currentState, newState))
-                return;
-
-            newState.Client?.Touch();
-
-            currentState.Dispose();
         }
 
         private void ProcessEvent(ConnectionEvent connectionEvent)
         {
-            log.Debug($"Processing event {connectionEvent}.");
+            log.Debug("Processing connection state event '{ConnectionEvent}'.", connectionEvent);
 
             var currentState = state;
 

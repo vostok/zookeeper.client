@@ -14,27 +14,26 @@ namespace Vostok.ZooKeeper.Client
     public class ZooKeeperClientSettings
     {
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionString"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] string connectionString, [NotNull] ILog log)
-            : this(() => connectionString, log)
+        public ZooKeeperClientSettings([NotNull] string connectionString)
+            : this(() => connectionString)
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicas"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicas"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] [ItemNotNull] Uri[] replicas, [NotNull] ILog log)
-            : this(() => replicas, log)
+        public ZooKeeperClientSettings([NotNull] [ItemNotNull] Uri[] replicas)
+            : this(() => replicas)
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicasProvider"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicasProvider"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] Func<Uri[]> replicasProvider, [NotNull] ILog log)
+        public ZooKeeperClientSettings([NotNull] Func<Uri[]> replicasProvider)
         {
-            Log = log ?? throw new ArgumentNullException(nameof(log));
             if (replicasProvider == null)
                 throw new ArgumentNullException(nameof(replicasProvider));
 
@@ -44,47 +43,35 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionStringProvider"/> and <paramref name="log"/>.
+        /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="connectionStringProvider"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] Func<string> connectionStringProvider, [NotNull] ILog log)
+        public ZooKeeperClientSettings([NotNull] Func<string> connectionStringProvider)
         {
-            Log = log ?? throw new ArgumentNullException(nameof(log));
             ConnectionStringProvider = connectionStringProvider ?? throw new ArgumentNullException(nameof(connectionStringProvider));
         }
 
         /// <summary>
-        /// Client logger.
+        /// A delegate that returns a connection string used to discover ZooKeeper cluster nodes.
         /// </summary>
-        public ILog Log { get; }
-
-        /// <summary>
-        /// Delegate for producing connection string.
-        /// </summary>
+        [NotNull]
         public Func<string> ConnectionStringProvider { get; }
 
         /// <summary>
         /// Session and connect timeout.
         /// </summary>
-        public TimeSpan Timeout { get; set; } = 5.Seconds();
+        public TimeSpan Timeout { get; set; } = 10.Seconds();
 
         /// <summary>
-        /// Is allowed to go to read-only mode in case of partitioning.
+        /// If set to <c>true</c>, client will be able to operate in read-only mode during partitions that isolate the node it's connected to from established quorum.
         /// </summary>
         public bool CanBeReadOnly { get; set; }
 
         /// <summary>
-        /// Capacity of <see cref="RecyclingBoundedCache{TKey,TValue}"/> for watchers.
+        /// Gets or sets the minimum level for logs produced by the client.
         /// </summary>
-        public int WatchersCacheCapacity { get; set; } = 10_000;
-
-        /// <summary>
-        /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
-        /// </summary>
-        public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
+        public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
 
         private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)
-        {
-            return string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
-        }
+            => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
 }

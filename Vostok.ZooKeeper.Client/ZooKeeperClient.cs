@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client
 {
     /// <summary>
     /// <para>Represents a ZooKeeper client.</para>
-    /// <para>This client is automatically reconnects to ZooKeeper cluster.</para>
+    /// <para>This client automatically reconnects to ZooKeeper cluster on disconnect or session expiry.</para>
     /// </summary>
     [PublicAPI]
     public class ZooKeeperClient : IZooKeeperClient, IDisposable
@@ -29,16 +29,17 @@ namespace Vostok.ZooKeeper.Client
         private readonly AtomicBoolean isDisposed = false;
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" /> and <paramref name="log"/>.
         /// </summary>
-        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings)
+        public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings, [CanBeNull] ILog log)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-
-            log = settings.Log.ForContext<ZooKeeperClient>();
+            this.log = log = (log ?? LogProvider.Get())
+                .ForContext<ZooKeeperClient>()
+                .WithMinimumLevel(settings.LoggingLevel);
 
             clientHolder = new ClientHolder(settings, log);
-            watcherWrapper = new WatcherWrapper(settings.WatchersCacheCapacity, log);
+            watcherWrapper = new WatcherWrapper(log);
         }
 
         /// <inheritdoc />
@@ -137,7 +138,7 @@ namespace Vostok.ZooKeeper.Client
                 var children = await GetChildrenAsync(new GetChildrenRequest(request.Path)).ConfigureAwait(false);
                 if (!children.IsSuccessful)
                 {
-                    return DeleteResult.Unsuccessful(children.Status, request.Path, null);
+                    return DeleteResult.Unsuccessful(children.Status, request.Path, children.Exception);
                 }
 
                 foreach (var name in children.ChildrenNames)
@@ -159,8 +160,6 @@ namespace Vostok.ZooKeeper.Client
             where TRequest : ZooKeeperRequest
             where TResult : ZooKeeperResult
         {
-            log.Debug($"Trying to {operation.Request}.");
-
             TResult result;
             try
             {
@@ -184,8 +183,29 @@ namespace Vostok.ZooKeeper.Client
                 result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.UnknownError, e);
             }
 
-            log.Debug($"Result {result}.");
+            LogResult(operation.Request, result);
+
             return result;
+        }
+
+        private void LogResult<TRequest, TResult>(TRequest request, TResult result)
+            where TRequest : ZooKeeperRequest
+            where TResult : ZooKeeperResult
+        {
+            if (result.IsSuccessful)
+            {
+                log.Debug("Request '{Request}' has completed successfully.", request);
+            }
+            else
+            {
+                var messageTemplate = "Request '{Request}' has failed with status '{ResultStatus}'.";
+                var exception = result.Exception is KeeperException ? null : result.Exception;
+
+                if (result.Status.IsMundaneError())
+                    log.Info(messageTemplate, request, result.Status);
+                else
+                    log.Warn(exception, messageTemplate, request, result.Status);
+            }
         }
     }
 }

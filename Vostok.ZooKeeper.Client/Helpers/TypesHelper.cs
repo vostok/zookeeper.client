@@ -27,7 +27,20 @@ namespace Vostok.ZooKeeper.Client.Helpers
             }
         }
 
-        public static NodeStat ToNodeStat(this Stat stat) => stat == null ? null : new NodeStat(stat.getCzxid(), stat.getMzxid(), stat.getPzxid(), stat.getCtime(), stat.getMtime(), stat.getVersion(), stat.getCversion(), stat.getAversion(), stat.getEphemeralOwner(), stat.getDataLength(), stat.getNumChildren());
+        public static NodeStat ToNodeStat(this Stat stat) => stat == null
+            ? null
+            : new NodeStat(
+                stat.getCzxid(),
+                stat.getMzxid(),
+                stat.getPzxid(),
+                stat.getCtime(),
+                stat.getMtime(),
+                stat.getVersion(),
+                stat.getCversion(),
+                stat.getAversion(),
+                stat.getEphemeralOwner(),
+                stat.getDataLength(),
+                stat.getNumChildren());
 
         public static ZooKeeperStatus ToZooKeeperStatus(this KeeperException exception)
         {

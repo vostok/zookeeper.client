@@ -73,7 +73,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 var connectionString = ensemble1.ConnectionString;
                 // ReSharper disable once AccessToModifiedClosure
-                var settings = new ZooKeeperClientSettings(() => connectionString, Log) {Timeout = DefaultTimeout};
+                var settings = new ZooKeeperClientSettings(() => connectionString) {Timeout = DefaultTimeout};
 
                 var holder = new ClientHolder(settings, Log);
                 WaitForNewConnectedClient(holder);
@@ -102,8 +102,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 var currentEnsemble = ensemble1;
                 var settings = useUri
-                    ? new ZooKeeperClientSettings(() => currentEnsemble.Topology, Log) {Timeout = DefaultTimeout}
-                    : new ZooKeeperClientSettings(() => currentEnsemble.ConnectionString, Log) {Timeout = DefaultTimeout};
+                    ? new ZooKeeperClientSettings(() => currentEnsemble.Topology) {Timeout = DefaultTimeout}
+                    : new ZooKeeperClientSettings(() => currentEnsemble.ConnectionString) {Timeout = DefaultTimeout};
 
                 var holder = new ClientHolder(settings, Log);
                 var observer = GetObserver(holder);
@@ -264,7 +264,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void Should_work_with_uri_provider()
         {
-            var settings = new ZooKeeperClientSettings(() => Ensemble.Topology, Log) {Timeout = DefaultTimeout};
+            var settings = new ZooKeeperClientSettings(() => Ensemble.Topology) {Timeout = DefaultTimeout};
 
             var holder = new ClientHolder(settings, Log);
             WaitForNewConnectedClient(holder);

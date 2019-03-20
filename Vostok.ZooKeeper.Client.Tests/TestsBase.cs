@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reactive;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -81,13 +79,13 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
-            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString, Log) {Timeout = timeout ?? DefaultTimeout};
-            return new ZooKeeperClient(settings);
+            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString) {Timeout = timeout ?? DefaultTimeout, LoggingLevel = LogLevel.Debug};
+            return new ZooKeeperClient(settings, Log);
         }
 
         protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
         {
-            var settings = new ZooKeeperClientSettings(connectionString, Log) {Timeout = timeout ?? DefaultTimeout};
+            var settings = new ZooKeeperClientSettings(connectionString) {Timeout = timeout ?? DefaultTimeout, LoggingLevel = LogLevel.Debug};
             return new ClientHolder(settings, Log);
         }
 
