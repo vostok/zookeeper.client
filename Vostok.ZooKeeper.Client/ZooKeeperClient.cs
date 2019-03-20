@@ -34,7 +34,9 @@ namespace Vostok.ZooKeeper.Client
         public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings, [CanBeNull] ILog log)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.log = (log ?? LogProvider.Get()).ForContext<ZooKeeperClient>();
+            this.log = log = (log ?? LogProvider.Get())
+                .ForContext<ZooKeeperClient>()
+                .WithMinimumLevel(settings.LoggingLevel);
 
             clientHolder = new ClientHolder(settings, log);
             watcherWrapper = new WatcherWrapper(log);

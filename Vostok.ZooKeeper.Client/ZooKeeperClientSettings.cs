@@ -67,9 +67,9 @@ namespace Vostok.ZooKeeper.Client
         public bool CanBeReadOnly { get; set; }
 
         /// <summary>
-        /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
+        /// Gets or sets the minimum level for logs produced by the client.
         /// </summary>
-        public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
+        public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
 
         private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)
             => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
