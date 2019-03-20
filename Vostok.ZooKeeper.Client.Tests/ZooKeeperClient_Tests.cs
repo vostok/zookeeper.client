@@ -524,10 +524,12 @@ namespace Vostok.ZooKeeper.Client.Tests
             {
                 await c.ExistsAsync("/path");
             }
+
             using (var c = GetClient())
             {
                 await c.ExistsAsync("path");
             }
+
             using (var c = GetClient())
             {
             }
@@ -556,9 +558,9 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             foreach (var c in clients)
             {
-                await c.SetDataAsync(path, new[] { (byte)++times });
+                await c.SetDataAsync(path, new[] {(byte)++times});
                 await KillSession(c, Ensemble.ConnectionString);
-                await c.SetDataAsync(path, new[] { (byte)++times });
+                await c.SetDataAsync(path, new[] {(byte)++times});
             }
 
             Ensemble.Stop();
@@ -567,7 +569,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             foreach (var c in clients)
             {
                 var data = await c.GetDataAsync(path);
-                data.Data.Should().BeEquivalentTo(new[] { (byte)times });
+                data.Data.Should().BeEquivalentTo(new[] {(byte)times});
             }
         }
 

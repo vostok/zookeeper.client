@@ -11,14 +11,16 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
-    [TestFixture, Explicit]
+    [TestFixture]
+    [Explicit]
     internal class ZooKeeperClient_SmokeTest : TestsBase
     {
         private readonly Random random = new Random();
-        private readonly string path = $"/some/long/path/a/b/c/e-";
+        private readonly string path = "/some/long/path/a/b/c/e-";
         private ZooKeeperClient client;
 
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public async Task SmokeTest()
         {
             var cts = new CancellationTokenSource(60.Seconds());
