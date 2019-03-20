@@ -51,8 +51,9 @@ namespace Vostok.ZooKeeper.Client
         }
 
         /// <summary>
-        /// Delegate for producing connection string.
+        /// A delegate that returns a connection string used to discover ZooKeeper cluster nodes.
         /// </summary>
+        [NotNull]
         public Func<string> ConnectionStringProvider { get; }
 
         /// <summary>
@@ -61,12 +62,12 @@ namespace Vostok.ZooKeeper.Client
         public TimeSpan Timeout { get; set; } = 10.Seconds();
 
         /// <summary>
-        /// Is allowed to go to read-only mode in case of partitioning.
+        /// If set to <c>true</c>, client will be able to operate in read-only mode during partitions that isolate the node it's connected to from established quorum.
         /// </summary>
         public bool CanBeReadOnly { get; set; }
 
         /// <summary>
-        /// Capacity of <see cref="RecyclingBoundedCache{TKey,TValue}"/> for watchers.
+        /// Capacity of the internal watchers cache.
         /// </summary>
         public int WatchersCacheCapacity { get; set; } = 1000;
 
