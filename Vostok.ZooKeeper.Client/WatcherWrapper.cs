@@ -7,13 +7,15 @@ namespace Vostok.ZooKeeper.Client
 {
     internal class WatcherWrapper
     {
+        private const int DefaultCacheCapacity = 1000;
+
         private readonly RecyclingBoundedCache<INodeWatcher, Watcher> watcherWrappers;
         private readonly ILog log;
 
-        public WatcherWrapper(int capacity, ILog log)
+        public WatcherWrapper(ILog log)
         {
             this.log = log;
-            watcherWrappers = new RecyclingBoundedCache<INodeWatcher, Watcher>(capacity);
+            watcherWrappers = new RecyclingBoundedCache<INodeWatcher, Watcher>(DefaultCacheCapacity);
         }
 
         public Watcher Wrap(INodeWatcher watcher)

@@ -67,11 +67,6 @@ namespace Vostok.ZooKeeper.Client
         public bool CanBeReadOnly { get; set; }
 
         /// <summary>
-        /// Capacity of the internal watchers cache.
-        /// </summary>
-        public int WatchersCacheCapacity { get; set; } = 1000;
-
-        /// <summary>
         /// If <see cref="ZooKeeperLog"/> was not already set, will use given <see cref="Log"/> with <see cref="InnerClientLogLevel"/>.
         /// </summary>
         public LogLevel InnerClientLogLevel { get; set; } = LogLevel.Info;
