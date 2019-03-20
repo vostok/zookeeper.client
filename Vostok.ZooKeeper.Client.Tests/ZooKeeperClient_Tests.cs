@@ -518,6 +518,22 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public async Task Dispose_immediately_should_not_deadlock()
+        {
+            using (var c = GetClient())
+            {
+                await c.ExistsAsync("/path");
+            }
+            using (var c = GetClient())
+            {
+                await c.ExistsAsync("path");
+            }
+            using (var c = GetClient())
+            {
+            }
+        }
+
+        [Test]
         public async Task Dispose_should_not_execute_operations()
         {
             var disposedClient = GetClient();
