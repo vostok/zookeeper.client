@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client
 {
     /// <summary>
     /// <para>Represents a ZooKeeper client.</para>
-    /// <para>This client is automatically reconnects to ZooKeeper cluster.</para>
+    /// <para>This client automatically reconnects to ZooKeeper cluster on disconnect or session expiry.</para>
     /// </summary>
     [PublicAPI]
     public class ZooKeeperClient : IZooKeeperClient, IDisposable
@@ -29,7 +29,7 @@ namespace Vostok.ZooKeeper.Client
         private readonly AtomicBoolean isDisposed = false;
 
         /// <summary>
-        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" />.
+        /// Creates a new instance of <see cref="ZooKeeperClient"/> using given <paramref name="settings" /> and <paramref name="log"/>.
         /// </summary>
         public ZooKeeperClient([NotNull] ZooKeeperClientSettings settings, [CanBeNull] ILog log)
         {
