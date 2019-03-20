@@ -112,7 +112,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 return false;
             }
 
-            var newConnectionWatcher = new ConnectionWatcher(log, ProcessEvent);
+            var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
             var newClient = new Lazy<ZooKeeperNetExClient>(
                 () => new ZooKeeperNetExClient(
                     newConnectionString,
