@@ -194,7 +194,11 @@ namespace Vostok.ZooKeeper.Client
         {
             if (result.IsSuccessful)
             {
-                log.Debug("Request '{Request}' has completed successfully.", request);
+                var messageTemplate = "Request '{Request}' has completed successfully.";
+                if (request.IsModifyingRequest())
+                    log.Info(messageTemplate, request);
+                else
+                    log.Debug(messageTemplate, request);
             }
             else
             {
