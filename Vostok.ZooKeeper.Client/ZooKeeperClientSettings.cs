@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Vostok.Commons.Collections;
@@ -24,7 +25,7 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicas"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] [ItemNotNull] Uri[] replicas)
+        public ZooKeeperClientSettings([NotNull] [ItemNotNull] IList<Uri> replicas)
             : this(() => replicas)
         {
         }
@@ -32,12 +33,12 @@ namespace Vostok.ZooKeeper.Client
         /// <summary>
         /// Creates a new instance of <see cref="ZooKeeperClientSettings"/> using given <paramref name="replicasProvider"/>.
         /// </summary>
-        public ZooKeeperClientSettings([NotNull] Func<Uri[]> replicasProvider)
+        public ZooKeeperClientSettings([NotNull] Func<IList<Uri>> replicasProvider)
         {
             if (replicasProvider == null)
                 throw new ArgumentNullException(nameof(replicasProvider));
 
-            var transform = new CachingTransform<Uri[], string>(BuildConnectionString);
+            var transform = new CachingTransform<IList<Uri>, string>(BuildConnectionString);
 
             ConnectionStringProvider = () => transform.Get(replicasProvider());
         }
@@ -71,7 +72,7 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
 
-        private static string BuildConnectionString([NotNull] [ItemNotNull] Uri[] uris)
+        private static string BuildConnectionString([NotNull] [ItemNotNull] IList<Uri> uris)
             => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
 }
