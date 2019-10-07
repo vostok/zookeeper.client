@@ -45,7 +45,7 @@
 
   <ItemGroup>
     <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" PrivateAssets="all" />
-	<PackageReference Update="@(PackageReference)">
+    <PackageReference Update="@(PackageReference)">
       <PrivateAssets>All</PrivateAssets>
       <Publish Condition=" '%(PackageReference.Publish)' != 'false' ">true</Publish>
     </PackageReference>
