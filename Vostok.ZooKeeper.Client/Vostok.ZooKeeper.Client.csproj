@@ -45,6 +45,10 @@
 
   <ItemGroup>
     <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" PrivateAssets="all" />
+	<PackageReference Update="@(PackageReference)">
+      <PrivateAssets>All</PrivateAssets>
+      <Publish Condition=" '%(PackageReference.Publish)' != 'false' ">true</Publish>
+    </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <ILRepackExecutable>"$(MSBuildThisFileDirectory)..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe"</ILRepackExecutable>
