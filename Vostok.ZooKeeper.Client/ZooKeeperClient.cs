@@ -39,7 +39,7 @@ namespace Vostok.ZooKeeper.Client
                 .WithMinimumLevel(settings.LoggingLevel);
 
             clientHolder = new ClientHolder(settings, log);
-            watcherWrapper = new WatcherWrapper(log);
+            watcherWrapper = new WatcherWrapper(settings.WatchersCacheCapacity, log);
         }
 
         /// <inheritdoc />

@@ -72,6 +72,12 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
 
+        /// <summary>
+        /// <para>Limit of unique watchers that can be used with <see cref="ZooKeeperClient"/> instance.</para>
+        /// <para>After reaching this limit, same watcher can be triggered multiple times, if it was added multiple times on same node.</para>
+        /// </summary>
+        public int WatchersCacheCapacity { get; set; } = 10_000;
+
         private static string BuildConnectionString([NotNull] [ItemNotNull] IList<Uri> uris)
             => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
