@@ -78,7 +78,7 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public int WatchersCacheCapacity { get; set; } = 100_000;
 
-        private static string BuildConnectionString([NotNull] [ItemNotNull] IList<Uri> uris)
-            => string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
+        private static string BuildConnectionString(IList<Uri> uris)
+            => uris == null ? null : string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
 }
