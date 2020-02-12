@@ -166,7 +166,9 @@ namespace Vostok.ZooKeeper.Client
                 var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
 
                 if (client == null)
-                    result = operation.CreateUnsuccessfulResult(ZooKeeperStatus.NotConnected, null);
+                    result = operation.CreateUnsuccessfulResult(
+                        clientHolder.ConnectionState == ConnectionState.Died ? ZooKeeperStatus.Died : ZooKeeperStatus.NotConnected,
+                        null);
                 else
                     result = await operation.Execute(client).ConfigureAwait(false);
             }
