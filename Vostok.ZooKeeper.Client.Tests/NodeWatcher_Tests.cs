@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -86,6 +87,17 @@ namespace Vostok.ZooKeeper.Client.Tests
                 client.Exists(new ExistsRequest(path) {Watcher = watcher}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(NodeChangedEventType.Deleted, path);
+        }
+
+        [Test]
+        public void Exists_should_be_trigger_by_duplicated_events_without_cache()
+        {
+            var path = "/watch/a/e";
+            var watcher = new TestWatcher();
+            for (var times = 0; times < 5; times++)
+                client.Exists(new ExistsRequest(path) { Watcher = watcher, IgnoreWatchersCache = true}).EnsureSuccess();
+            client.Delete(new DeleteRequest(path)).EnsureSuccess();
+            watcher.ShouldBeTriggeredBy(Enumerable.Repeat((NodeChangedEventType.Deleted, path), 5).ToArray());
         }
 
         [Test]

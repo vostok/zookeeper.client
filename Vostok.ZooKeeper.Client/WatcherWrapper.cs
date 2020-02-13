@@ -16,9 +16,15 @@ namespace Vostok.ZooKeeper.Client
             watcherWrappers = new RecyclingBoundedCache<INodeWatcher, Watcher>(cacheCapacity);
         }
 
-        public Watcher Wrap(INodeWatcher watcher)
+        public Watcher Wrap(INodeWatcher watcher, bool ignoreCache)
         {
-            return watcher == null ? null : watcherWrappers.Obtain(watcher, w => new ZooKeeperNodeWatcher(w, log));
+            if (watcher == null)
+                return null;
+
+            if (ignoreCache)
+                return new ZooKeeperNodeWatcher(watcher, log);
+
+            return watcherWrappers.Obtain(watcher, w => new ZooKeeperNodeWatcher(w, log));
         }
     }
 }
