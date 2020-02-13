@@ -547,7 +547,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var result = await disposedClient.ExistsAsync("/path");
 
-            result.Status.Should().Be(ZooKeeperStatus.NotConnected);
+            result.Status.Should().Be(ZooKeeperStatus.Died);
         }
 
         [Test]

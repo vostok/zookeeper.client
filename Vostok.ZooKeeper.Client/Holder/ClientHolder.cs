@@ -171,10 +171,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 }
 
                 if (complete)
-                {
-                    OnConnectionStateChanged.Next(ConnectionState.Died);
                     OnConnectionStateChanged.Complete();
-                }
             }
         }
     }

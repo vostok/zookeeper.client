@@ -218,7 +218,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 observer,
                 Notification.CreateOnNext(ConnectionState.Disconnected),
                 Notification.CreateOnNext(ConnectionState.Connected),
-                Notification.CreateOnNext(ConnectionState.Disconnected),
+                Notification.CreateOnNext(ConnectionState.Died),
                 Notification.CreateOnCompleted<ConnectionState>());
         }
 
@@ -228,7 +228,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var holder = GetClientHolder(Ensemble.ConnectionString);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            WaitForDisconnectedState(holder);
+            WaitForDiedState(holder);
         }
 
         [Test]

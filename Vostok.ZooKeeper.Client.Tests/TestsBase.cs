@@ -59,6 +59,12 @@ namespace Vostok.ZooKeeper.Client.Tests
             assertion.ShouldPassIn(5.Seconds());
         }
 
+        protected static void WaitForDiedState(ClientHolder holder)
+        {
+            Action assertion = () => { holder.ConnectionState.Should().Be(ConnectionState.Died); };
+            assertion.ShouldPassIn(5.Seconds());
+        }
+
         protected static void VerifyObserverMessages(TestObserver<ConnectionState> observer, params ConnectionState[] states)
         {
             Action assertion = () => { observer.Values.Should().BeEquivalentTo(states, options => options.WithStrictOrdering()); };
