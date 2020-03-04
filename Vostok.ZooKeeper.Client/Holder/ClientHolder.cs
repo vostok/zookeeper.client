@@ -35,7 +35,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
 
-        public ConnectionState ConnectionState => state?.ConnectionState ?? ConnectionState.Disconnected;
+        public ConnectionState ConnectionState => state?.ConnectionState ?? ConnectionState.Died;
 
         public long SessionId => state?.Client?.GetSessionId() ?? 0;
 

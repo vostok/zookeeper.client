@@ -512,9 +512,13 @@ namespace Vostok.ZooKeeper.Client.Tests
             var disposedClient = GetClient();
             disposedClient.Dispose();
 
-            disposedClient.ConnectionState.Should().Be(ConnectionState.Disconnected);
+            disposedClient.ConnectionState.Should().Be(ConnectionState.Died);
             disposedClient.SessionId.Should().Be(0);
             disposedClient.SessionPassword.Should().BeNull();
+
+            var result = disposedClient.Exists("node");
+            result.IsSuccessful.Should().BeFalse();
+            result.Status.Should().Be(ZooKeeperStatus.Died);
         }
 
         [Test]
@@ -543,7 +547,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var result = await disposedClient.ExistsAsync("/path");
 
-            result.Status.Should().Be(ZooKeeperStatus.NotConnected);
+            result.Status.Should().Be(ZooKeeperStatus.Died);
         }
 
         [Test]

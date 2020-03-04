@@ -19,7 +19,8 @@ namespace Vostok.ZooKeeper.Client
 
         public override Task process(WatchedEvent @event)
         {
-            // Note(kungurtsev): we ignore connection state changed events, because client holder can reset client.
+            // Note(kungurtsev): we ignore connection state changed events, because client dispose not generates them.
+            // Note(kungurtsev): connection state should be tracked by OnConnectionStateChanged separately.
             if (@event.get_Type() == Event.EventType.None)
                 return Task.CompletedTask;
 

@@ -19,7 +19,7 @@ namespace Vostok.ZooKeeper.Client.Operations
 
         public override async Task<GetDataResult> Execute(org.apache.zookeeper.ZooKeeper client)
         {
-            var result = await client.getDataAsync(Request.Path, wrapper.Wrap(Request.Watcher)).ConfigureAwait(false);
+            var result = await client.getDataAsync(Request.Path, wrapper.Wrap(Request.Watcher, Request.IgnoreWatchersCache)).ConfigureAwait(false);
 
             return GetDataResult.Successful(Request.Path, result.Data, result.Stat.ToNodeStat());
         }
