@@ -95,7 +95,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/watch/a/e";
             var watcher = new TestWatcher();
             for (var times = 0; times < 5; times++)
-                client.Exists(new ExistsRequest(path) { Watcher = watcher, IgnoreWatchersCache = true}).EnsureSuccess();
+                client.Exists(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true}).EnsureSuccess();
             client.Delete(new DeleteRequest(path)).EnsureSuccess();
             watcher.ShouldBeTriggeredBy(Enumerable.Repeat((NodeChangedEventType.Deleted, path), 5).ToArray());
         }
