@@ -101,11 +101,17 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
             var newClient = new Lazy<ZooKeeperNetExClient>(
-                () => new ZooKeeperNetExClient(
-                    newConnectionString,
-                    settings.ToInnerConnectionTimeout(),
-                    newConnectionWatcher,
-                    settings.CanBeReadOnly),
+                () =>
+                {
+                    using (ExecutionContext.SuppressFlow())
+                    {
+                        return new ZooKeeperNetExClient(
+                            newConnectionString,
+                            settings.ToInnerConnectionTimeout(),
+                            newConnectionWatcher,
+                            settings.CanBeReadOnly);
+                    }
+                },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
             var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString);
