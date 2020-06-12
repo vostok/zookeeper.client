@@ -53,6 +53,9 @@ namespace Vostok.ZooKeeper.Client
         public ConnectionState ConnectionState => clientHolder.ConnectionState;
 
         /// <inheritdoc />
+        public TimeSpan SessionTimeout => clientHolder.SessionTimeout;
+
+        /// <inheritdoc />
         public long SessionId => clientHolder.SessionId;
 
         /// <summary>
