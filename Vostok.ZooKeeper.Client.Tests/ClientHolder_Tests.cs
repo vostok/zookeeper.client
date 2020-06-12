@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             holder.ConnectionState.Should().Be(ConnectionState.Connected);
             holder.SessionId.Should().NotBe(0);
+            holder.SessionTimeout.Should().BeGreaterThan(TimeSpan.Zero);
         }
 
         [Test]
@@ -36,6 +38,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
+            holder.SessionTimeout.Should().Be(TimeSpan.Zero);
         }
 
         [Test]
@@ -47,6 +50,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
+            holder.SessionTimeout.Should().Be(TimeSpan.Zero);
         }
 
         [Test]
