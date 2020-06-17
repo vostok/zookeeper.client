@@ -40,6 +40,29 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public async Task Connect_should_return_true_on_success()
+        {
+            var tempClient = GetClient();
+            var result = await tempClient.ConnectAsync();
+
+            tempClient.ConnectionState.Should().Be(ConnectionState.Connected);
+            result.Should().BeTrue();
+        }
+
+        [Test]
+        public async Task Connect_should_return_false_on_failure()
+        {
+            Ensemble.Stop();
+            WaitForDisconnectedState(client);
+
+            var result = await client.ConnectAsync();
+
+            Ensemble.Start();
+
+            result.Should().BeFalse();
+        }
+
+        [Test]
         public async Task Should_reconnect()
         {
             Ensemble.Stop();
@@ -51,12 +74,13 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task SessionId_SessionPassword_ConnectionState_should_be_filled_after_connect()
+        public async Task SessionId_SessionTimeout_SessionPassword_ConnectionState_should_be_filled_after_connect()
         {
             (await client.ExistsAsync("/path")).EnsureSuccess();
 
             client.ConnectionState.Should().Be(ConnectionState.Connected);
             client.SessionId.Should().NotBe(0);
+            client.SessionTimeout.Should().BeGreaterThan(TimeSpan.Zero);
             client.SessionPassword.Should().NotBeNullOrEmpty();
         }
 
@@ -514,6 +538,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             disposedClient.ConnectionState.Should().Be(ConnectionState.Died);
             disposedClient.SessionId.Should().Be(0);
+            disposedClient.SessionTimeout.Should().Be(TimeSpan.Zero);
             disposedClient.SessionPassword.Should().BeNull();
 
             var result = disposedClient.Exists("node");

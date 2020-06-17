@@ -64,6 +64,14 @@ namespace Vostok.ZooKeeper.Client
         public byte[] SessionPassword => clientHolder.SessionPassword;
 
         /// <inheritdoc />
+        public async Task<bool> ConnectAsync()
+        {
+            var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
+
+            return client != null;
+        }
+
+        /// <inheritdoc />
         public async Task<CreateResult> CreateAsync(CreateRequest request)
         {
             var result = await ExecuteOperation(new CreateOperation(request)).ConfigureAwait(false);
