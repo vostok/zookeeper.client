@@ -141,6 +141,37 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void GetConnectedClient_should_return_new_after_disconnect_and_timeout()
+        {
+            var holder = GetClientHolder(Ensemble.ConnectionString);
+            var observer = GetObserver(holder);
+
+            WaitForNewConnectedClient(holder);
+            
+            Ensemble.Stop();
+            WaitForDisconnectedState(holder);
+
+            Thread.Sleep(DefaultTimeout + 1.Seconds());
+            holder.SessionId.Should().Be(0);
+
+            Ensemble.Start();
+            WaitForNewConnectedClient(holder);
+            var sid = holder.SessionId;
+            holder.SessionId.Should().NotBe(0);
+
+            Thread.Sleep(DefaultTimeout + 1.Seconds());
+            holder.SessionId.Should().Be(sid);
+
+            VerifyObserverMessages(
+                observer,
+                ConnectionState.Disconnected,
+                ConnectionState.Connected,
+                ConnectionState.Disconnected,
+                ConnectionState.Connected
+            );
+        }
+
+        [Test]
         public void OnConnectionStateChanged_should_observe_disconnected_as_initial_state()
         {
             Ensemble.Stop();
