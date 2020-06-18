@@ -78,6 +78,11 @@ namespace Vostok.ZooKeeper.Client
         /// </summary>
         public int WatchersCacheCapacity { get; set; } = 100_000;
 
+        /// <summary>
+        /// <para>Maximum <see cref="Timeout"/> multiplier for delays between attempts of connecting to ZooKeeper cluster.</para>
+        /// </summary>
+        public int MaximumConnectPeriodMultiplier { get; set; } = 10;
+
         private static string BuildConnectionString(IList<Uri> uris)
             => uris == null ? null : string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
     }
