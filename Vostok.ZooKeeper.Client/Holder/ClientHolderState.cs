@@ -16,7 +16,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly Lazy<ZooKeeperNetExClient> lazyClient;
         private readonly string connectionString;
         private readonly ZooKeeperClientSettings settings;
-        private readonly DateTime stateChanged = DateTime.UtcNow;
+        private readonly DateTime created = DateTime.UtcNow;
         private readonly TimeBudget suspended;
 
         public ClientHolderState(
@@ -69,7 +69,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public bool NeedToResetClient() =>
             Client == null
-            || !IsConnected && DateTime.UtcNow - stateChanged > TimeBeforeReset
+            || !IsConnected && DateTime.UtcNow - created > TimeBeforeReset
             || connectionString != settings.ConnectionStringProvider();
 
         [Pure]
@@ -86,7 +86,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public override string ToString() =>
             suspended == null
-                ? $"{ConnectionState} at {stateChanged.ToLocalTime():s}"
-                : $"{ConnectionState} (suspended for {suspended.Remaining.ToPrettyString()}) at {stateChanged.ToLocalTime():s}";
+                ? $"{ConnectionState} at {created.ToLocalTime():s}"
+                : $"{ConnectionState} (suspended for {suspended.Remaining.ToPrettyString()}) at {created.ToLocalTime():s}";
     }
 }
