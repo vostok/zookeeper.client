@@ -6,20 +6,20 @@ namespace Vostok.ZooKeeper.Client.Holder
 {
     internal class SuspendedManager
     {
-        private readonly TimeSpan sendPeriod;
-        private readonly TimeSpan sendPeriodCap;
+        private readonly TimeSpan period;
+        private readonly TimeSpan periodCap;
         private readonly double maxJitterFraction;
         private readonly int initialBackoffDepth;
         private readonly AtomicInt backoffDepth;
 
         public SuspendedManager(
-            TimeSpan sendPeriod,
-            TimeSpan sendPeriodCap,
+            TimeSpan period,
+            TimeSpan periodCap,
             double maxJitterFraction,
             int initialBackoffDepth)
         {
-            this.sendPeriod = sendPeriod;
-            this.sendPeriodCap = sendPeriodCap;
+            this.period = period;
+            this.periodCap = periodCap;
             this.maxJitterFraction = maxJitterFraction;
             this.initialBackoffDepth = initialBackoffDepth;
 
@@ -28,7 +28,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public TimeBudget GetNextDelay()
         {
-            var baseDelayMs = Math.Min(sendPeriodCap.TotalMilliseconds, sendPeriod.TotalMilliseconds * Math.Max(0, backoffDepth));
+            var baseDelayMs = Math.Min(periodCap.TotalMilliseconds, period.TotalMilliseconds * Math.Max(0, backoffDepth));
 
             if (baseDelayMs <= 0)
                 return null;

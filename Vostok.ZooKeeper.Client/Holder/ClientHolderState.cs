@@ -68,8 +68,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             suspended != null;
 
         public bool NeedToResetClient() =>
-            Client == null
-            || !IsConnected && DateTime.UtcNow - created > TimeBeforeReset
+            !IsConnected && DateTime.UtcNow - created > TimeBeforeReset
             || connectionString != settings.ConnectionStringProvider();
 
         [Pure]
