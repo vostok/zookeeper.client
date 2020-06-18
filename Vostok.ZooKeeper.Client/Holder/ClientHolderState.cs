@@ -13,14 +13,23 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly ConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>(TaskCreationOptions.RunContinuationsAsynchronously);
         public readonly string ConnectionString;
+        public readonly TimeSpan TimeBeforeReset;
+        private readonly ZooKeeperClientSettings settings;
         private readonly DateTime stateChanged = DateTime.UtcNow;
 
-        public ClientHolderState(Lazy<ZooKeeperNetExClient> client, ConnectionWatcher connectionWatcher, ConnectionState connectionState, string connectionString)
+        public ClientHolderState(
+            Lazy<ZooKeeperNetExClient> client,
+            ConnectionWatcher connectionWatcher,
+            ConnectionState connectionState,
+            string connectionString,
+            ZooKeeperClientSettings settings)
         {
             LazyClient = client;
             ConnectionState = connectionState;
             ConnectionString = connectionString;
+            this.settings = settings;
             ConnectionWatcher = connectionWatcher;
+            TimeBeforeReset = settings.Timeout;
         }
 
         [CanBeNull]
@@ -39,19 +48,18 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
-        public bool NeedToResetClient(ZooKeeperClientSettings settings)
-        {
-            return Client == null
-                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - stateChanged > settings.Timeout
-                   || ConnectionString != settings.ConnectionStringProvider();
-        }
+        public bool IsConnected =>
+            ConnectionState.IsConnected(settings.CanBeReadOnly);
 
-        public void Dispose()
-        {
+        public bool NeedToResetClient() =>
+            Client == null
+            || !IsConnected && DateTime.UtcNow - stateChanged > TimeBeforeReset
+            || ConnectionString != settings.ConnectionStringProvider();
+
+        public void Dispose() =>
             Client.Dispose();
-        }
 
         public override string ToString() =>
-            $"{ConnectionState} at {stateChanged.ToLocalTime()}";
+            $"{ConnectionState} at {stateChanged.ToLocalTime():s}";
     }
 }
