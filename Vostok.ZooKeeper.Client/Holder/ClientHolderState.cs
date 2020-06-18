@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Vostok.Commons.Time;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
@@ -13,29 +12,15 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly ConnectionState ConnectionState;
         public readonly ConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>(TaskCreationOptions.RunContinuationsAsynchronously);
-        public readonly TimeBudget Suspended;
         public readonly string ConnectionString;
-        public readonly TimeSpan TimeUntilNextReset;
-        private readonly ZooKeeperClientSettings settings;
-
         private readonly DateTime stateChanged = DateTime.UtcNow;
 
-        public ClientHolderState(
-            Lazy<ZooKeeperNetExClient> client,
-            ConnectionWatcher connectionWatcher,
-            ConnectionState connectionState,
-            TimeBudget suspended,
-            string connectionString,
-            ZooKeeperClientSettings settings)
+        public ClientHolderState(Lazy<ZooKeeperNetExClient> client, ConnectionWatcher connectionWatcher, ConnectionState connectionState, string connectionString)
         {
             LazyClient = client;
             ConnectionState = connectionState;
             ConnectionString = connectionString;
-            this.settings = settings;
-            Suspended = suspended;
             ConnectionWatcher = connectionWatcher;
-
-            TimeUntilNextReset = suspended.Remaining + settings.Timeout;
         }
 
         [CanBeNull]
@@ -45,9 +30,6 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 try
                 {
-                    if (!Suspended.HasExpired)
-                        return null;
-
                     return LazyClient?.Value;
                 }
                 catch (Exception)
@@ -57,39 +39,19 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
-        public bool IsConnected =>
-            ConnectionState.IsConnected(settings.CanBeReadOnly);
-
-        public bool NeedToResetClient()
+        public bool NeedToResetClient(ZooKeeperClientSettings settings)
         {
-            if (!Suspended.HasExpired)
-                return false;
-
             return Client == null
-                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - stateChanged > TimeUntilNextReset
+                   || !ConnectionState.IsConnected(settings.CanBeReadOnly) && DateTime.UtcNow - stateChanged > settings.Timeout
                    || ConnectionString != settings.ConnectionStringProvider();
-        }
-
-        public void InitializeClient()
-        {
-            LazyClient?.Value?.Touch();
         }
 
         public void Dispose()
         {
-            try
-            {
-                LazyClient?.Value?.closeAsync().Wait();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
+            Client.Dispose();
         }
 
         public override string ToString() =>
-            Suspended.HasExpired
-                ? $"{ConnectionState} at {stateChanged.ToLocalTime():s}"
-                : $"{ConnectionState} (suspended for {Suspended.Remaining.ToPrettyString()}) at {stateChanged.ToLocalTime():s}";
+            $"{ConnectionState} at {stateChanged.ToLocalTime()}";
     }
 }
