@@ -30,6 +30,9 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             var baseDelayMs = Math.Min(sendPeriodCap.TotalMilliseconds, sendPeriod.TotalMilliseconds * Math.Max(0, backoffDepth));
 
+            if (baseDelayMs <= 0)
+                return null;
+
             var delay = TimeSpan.FromMilliseconds(baseDelayMs);
 
             var jitter = delay.Multiply(Random(-maxJitterFraction, maxJitterFraction));

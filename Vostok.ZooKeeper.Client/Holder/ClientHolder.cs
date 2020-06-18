@@ -18,6 +18,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly ILog log;
         private readonly ZooKeeperClientSettings settings;
         private readonly AtomicBoolean isDisposed = false;
+        private readonly SuspendedManager suspendedManager;
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         [CanBeNull]
@@ -29,6 +30,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.settings = settings;
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected, null, settings);
+            suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(10), 0, -3);
 
             ZooKeeperLogInjector.Register(this, this.log);
         }
@@ -90,10 +92,17 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private async Task WaitAndResetClient([NotNull] ClientHolderState currentState)
         {
-            await Task.Delay(currentState.TimeBeforeReset).ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(currentState.TimeBeforeReset).ConfigureAwait(false);
 
-            if (state == currentState)
-                ResetClient(currentState);
+                if (state == currentState)
+                    ResetClient(currentState);
+            }
+            catch (Exception e)
+            {
+                log.Error(e, "Failed to reset client.");
+            }
         }
 
         private bool ResetClient([NotNull] ClientHolderState currentState)
@@ -122,11 +131,16 @@ namespace Vostok.ZooKeeper.Client.Holder
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-            var newState = new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
+            var suspended = suspendedManager.GetNextDelay();
+            var newState = suspended != null && !currentState.IsSuspended
+                ? new ClientHolderState(suspended, settings)
+                : new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
 
             if (ChangeState(currentState, newState))
             {
                 newState.Client?.Touch();
+
+                suspendedManager.IncreaseDelay();
 
                 currentState.Dispose();
             }
@@ -149,6 +163,8 @@ namespace Vostok.ZooKeeper.Client.Holder
                 ResetClient(newState);
             else if (!newState.IsConnected)
                 Task.Run(() => WaitAndResetClient(newState));
+            else
+                suspendedManager.ResetDelay();
 
             return true;
         }
@@ -162,12 +178,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (currentState == null || !ReferenceEquals(connectionEvent.EventFrom, currentState.ConnectionWatcher))
                 return;
 
-            var newState = new ClientHolderState(
-                currentState.LazyClient,
-                currentState.ConnectionWatcher,
-                connectionEvent.NewConnectionState,
-                currentState.ConnectionString,
-                settings);
+            var newState = currentState.WithConnectionState(connectionEvent.NewConnectionState);
 
             ChangeState(currentState, newState);
         }
