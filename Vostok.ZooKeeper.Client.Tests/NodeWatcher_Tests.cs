@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
+using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
@@ -26,10 +27,20 @@ namespace Vostok.ZooKeeper.Client.Tests
         [SetUp]
         public new void SetUp()
         {
-            client.Delete(new DeleteRequest("/watch") {DeleteChildrenIfNeeded = true});
-            client.Create(new CreateRequest("/watch/a/b/c", CreateMode.Persistent)).EnsureSuccess();
-            client.Create(new CreateRequest("/watch/a/b/d", CreateMode.Persistent)).EnsureSuccess();
-            client.Create(new CreateRequest("/watch/a/e", CreateMode.Persistent)).EnsureSuccess();
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    client.Delete(new DeleteRequest("/watch") {DeleteChildrenIfNeeded = true}).EnsureSuccess();
+                    client.Create(new CreateRequest("/watch/a/b/c", CreateMode.Persistent)).EnsureSuccess();
+                    client.Create(new CreateRequest("/watch/a/b/d", CreateMode.Persistent)).EnsureSuccess();
+                    client.Create(new CreateRequest("/watch/a/e", CreateMode.Persistent)).EnsureSuccess();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Failed to SetUp initial tree.");
+                }
+            }
         }
 
         [OneTimeTearDown]
