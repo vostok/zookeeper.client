@@ -30,7 +30,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.settings = settings;
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected, null, settings);
-            suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), 0, -3);
+            suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), 0.1, -3);
 
             ZooKeeperLogInjector.Register(this, this.log);
         }
