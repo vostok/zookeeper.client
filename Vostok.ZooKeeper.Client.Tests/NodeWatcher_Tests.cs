@@ -17,16 +17,12 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal class NodeWatcher_Tests : TestsBase
     {
         private ZooKeeperClient client;
-
-        [OneTimeSetUp]
-        public new void OneTimeSetUp()
-        {
-            client = GetClient();
-        }
-
+        
         [SetUp]
         public new void SetUp()
         {
+            client = GetClient();
+
             for (var attempt = 0; attempt < 3; attempt++)
             {
                 try
@@ -43,8 +39,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             }
         }
 
-        [OneTimeTearDown]
-        public new void OneTimeTearDown()
+        [TearDown]
+        public void TearDown()
         {
             client.Dispose();
         }
