@@ -145,9 +145,9 @@ namespace Vostok.ZooKeeper.Client.Holder
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-            var suspended = suspendedManager.GetNextDelay();
-            var newState = suspended != null && !currentState.IsSuspended
-                ? new ClientHolderState(suspended, settings)
+            var suspendedDelay = suspendedManager.GetNextDelay();
+            var newState = suspendedDelay != null && !currentState.IsSuspended
+                ? new ClientHolderState(suspendedDelay, settings)
                 : new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
 
             if (ChangeState(currentState, newState))
