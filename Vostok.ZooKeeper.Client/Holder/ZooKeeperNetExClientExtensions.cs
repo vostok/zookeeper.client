@@ -5,18 +5,6 @@ namespace Vostok.ZooKeeper.Client.Holder
 {
     internal static class ZooKeeperNetExClientExtensions
     {
-        public static void Dispose(this ZooKeeperNetExClient client)
-        {
-            try
-            {
-                client?.closeAsync().Wait();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
         public static long GetSessionId(this ZooKeeperNetExClient client)
         {
             try

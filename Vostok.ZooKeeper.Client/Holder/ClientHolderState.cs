@@ -10,39 +10,40 @@ namespace Vostok.ZooKeeper.Client.Holder
     internal class ClientHolderState : IDisposable
     {
         public readonly ConnectionState ConnectionState;
-        public readonly ConnectionWatcher ConnectionWatcher;
+        public readonly IConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>(TaskCreationOptions.RunContinuationsAsynchronously);
-        public readonly TimeSpan TimeBeforeReset;
+        public readonly TimeBudget TimeBeforeReset;
+        public readonly bool IsSuspended;
+        public readonly bool IsConnected;
+        public readonly string ConnectionString;
         private readonly Lazy<ZooKeeperNetExClient> lazyClient;
-        private readonly string connectionString;
         private readonly ZooKeeperClientSettings settings;
         private readonly DateTime created = DateTime.UtcNow;
-        private readonly TimeBudget suspended;
-
+        
         public ClientHolderState(
             Lazy<ZooKeeperNetExClient> client,
-            ConnectionWatcher connectionWatcher,
+            IConnectionWatcher connectionWatcher,
             ConnectionState connectionState,
             string connectionString,
             ZooKeeperClientSettings settings)
         {
             lazyClient = client;
             ConnectionState = connectionState;
-            this.connectionString = connectionString;
-            this.settings = settings;
+            ConnectionString = connectionString;
             ConnectionWatcher = connectionWatcher;
-            TimeBeforeReset = settings.Timeout;
+            TimeBeforeReset = TimeBudget.CreateNew(settings.Timeout);
+            IsConnected = ConnectionState.IsConnected(settings.CanBeReadOnly);
+            this.settings = settings;
         }
 
         public ClientHolderState(
             TimeBudget suspended,
             ZooKeeperClientSettings settings)
         {
-            this.suspended = suspended;
-            this.settings = settings;
-
+            IsSuspended = true;
             ConnectionState = ConnectionState.Disconnected;
-            TimeBeforeReset = suspended.Remaining;
+            TimeBeforeReset = suspended;
+            this.settings = settings;
         }
 
         [CanBeNull]
@@ -61,31 +62,30 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
         }
 
-        public bool IsConnected =>
-            ConnectionState.IsConnected(settings.CanBeReadOnly);
-
-        public bool IsSuspended =>
-            suspended != null;
-
-        public bool NeedToResetClient() =>
-            !IsConnected && DateTime.UtcNow - created > TimeBeforeReset
-            || connectionString != settings.ConnectionStringProvider();
-
         [Pure]
         public ClientHolderState WithConnectionState(ConnectionState newConnectionState) =>
             new ClientHolderState(
                 lazyClient,
                 ConnectionWatcher,
                 newConnectionState,
-                connectionString,
+                ConnectionString,
                 settings);
 
-        public void Dispose() =>
-            Client.Dispose();
+        public void Dispose()
+        {
+            try
+            {
+                Client?.closeAsync().Wait();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
 
         public override string ToString() =>
-            suspended == null
-                ? $"{ConnectionState} at {created.ToLocalTime():s}"
-                : $"{ConnectionState} (suspended for {suspended.Remaining.ToPrettyString()}) at {created.ToLocalTime():s}";
+            IsSuspended
+                ? $"{ConnectionState} (suspended for {TimeBeforeReset.Remaining.ToPrettyString()}) at {created.ToLocalTime():s}"
+                : $"{ConnectionState} at {created.ToLocalTime():s}";
     }
 }

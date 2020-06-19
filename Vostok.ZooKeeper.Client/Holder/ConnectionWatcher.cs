@@ -4,7 +4,7 @@ using org.apache.zookeeper;
 
 namespace Vostok.ZooKeeper.Client.Holder
 {
-    internal class ConnectionWatcher : Watcher
+    internal class ConnectionWatcher : Watcher, IConnectionWatcher
     {
         private readonly Action<ConnectionEvent> action;
 

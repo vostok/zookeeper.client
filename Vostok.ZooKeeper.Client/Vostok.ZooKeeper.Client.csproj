@@ -63,7 +63,7 @@
       <MergeAssemblies Include="$(BinPath)ZooKeeperNetEx.dll" />
       <MergeAssemblies Include="$(BinPath)System*.dll" />
     </ItemGroup>
-    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
     <Delete Files="@(MergeAssemblies)" />
   </Target>
 </Project>

@@ -30,7 +30,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.settings = settings;
 
             state = new ClientHolderState(null, null, ConnectionState.Disconnected, null, settings);
-            suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), 0.1, -3);
+            suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), 0, -3);
 
             ZooKeeperLogInjector.Register(this, this.log);
         }
@@ -84,17 +84,31 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private bool ResetClientIfNeeded([CanBeNull] ClientHolderState currentState)
         {
-            if (currentState != null && currentState.NeedToResetClient())
+            if (currentState != null && NeedToResetClient(currentState))
                 return ResetClient(currentState);
 
             return true;
+        }
+
+        private bool NeedToResetClient([NotNull] ClientHolderState currentState)
+        {
+            if (currentState.IsSuspended)
+                return currentState.TimeBeforeReset.HasExpired;
+
+            if (currentState.ConnectionString != settings.ConnectionStringProvider())
+                return true;
+
+            if (!currentState.IsConnected)
+                return currentState.TimeBeforeReset.HasExpired;
+
+            return false;
         }
 
         private async Task WaitAndResetClient([NotNull] ClientHolderState currentState)
         {
             try
             {
-                await Task.Delay(currentState.TimeBeforeReset).ConfigureAwait(false);
+                await Task.Delay(currentState.TimeBeforeReset.Remaining).ConfigureAwait(false);
 
                 if (state == currentState)
                     ResetClient(currentState);
@@ -140,7 +154,8 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 newState.Client?.Touch();
 
-                suspendedManager.IncreaseDelay();
+                if (!currentState.IsSuspended)
+                    suspendedManager.IncreaseDelay();
 
                 currentState.Dispose();
             }
