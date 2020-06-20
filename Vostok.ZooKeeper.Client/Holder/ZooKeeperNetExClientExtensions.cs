@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Holder
@@ -30,6 +31,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         }
 
         // ReSharper disable once UnusedParameter.Global
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void Touch(this ZooKeeperNetExClient client)
         {
         }

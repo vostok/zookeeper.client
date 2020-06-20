@@ -12,11 +12,14 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly ConnectionState ConnectionState;
         public readonly IConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>(TaskCreationOptions.RunContinuationsAsynchronously);
+        // CR(iloktionov): TimeBudget, который прилетает сюда (из 2 возможных мест), всегда создаётся через CreateNew(), а не StartNew(). 
+        // CR(iloktionov): Значит, он не начинает тикать и никогда не истечёт (а на это сверху есть всякие проверки). Почему так? 
         public readonly TimeBudget TimeBeforeReset;
         public readonly bool IsSuspended;
         public readonly bool IsConnected;
         public readonly string ConnectionString;
         private readonly Lazy<ZooKeeperNetExClient> lazyClient;
+        // CR(iloktionov): Зачем здесь эти settings? Кажется, они не используются.
         private readonly ZooKeeperClientSettings settings;
         private readonly DateTime created = DateTime.UtcNow;
         
@@ -36,6 +39,8 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.settings = settings;
         }
 
+        // CR(iloktionov): Может, заменить для ясности на фабричные методы с названиями + private-конструктор?
+        // CR(iloktionov): А то не очень-то очевидна разница и назначение разных конструкторов лишь по набору аргументов.
         public ClientHolderState(
             TimeBudget suspended,
             ZooKeeperClientSettings settings)

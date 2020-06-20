@@ -92,6 +92,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private bool NeedToResetClient([NotNull] ClientHolderState currentState)
         {
+            // CR(iloktionov): Вот есть эта проверка, а есть WaitAndResetClient. Они теперь не дублируют друг друга?
             if (currentState.IsSuspended)
                 return currentState.TimeBeforeReset.HasExpired;
 
@@ -110,7 +111,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 await Task.Delay(currentState.TimeBeforeReset.Remaining).ConfigureAwait(false);
 
-                if (state == currentState)
+                if (ReferenceEquals(state, currentState))
                     ResetClient(currentState);
             }
             catch (Exception e)
@@ -154,6 +155,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 newState.Client?.Touch();
 
+                // CR(iloktionov): Тут нужен какой-то комментарий, почему логика именно такая. Прямо тяжело воспринимать.
                 if (!currentState.IsSuspended)
                     suspendedManager.IncreaseDelay();
 
@@ -174,6 +176,9 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             log.Info("Connection state changed. Old: '{OldState}'. New: '{NewState}'.", currentState, newState);
 
+            // CR(iloktionov): Почему проверка на Expired переехала в ChangeState, когда он может прилететь лишь из ProcessEvent?
+            // CR(iloktionov): На первый взгляд может и вовсе показаться, что тут возможны циклические вызовы между ResetClient и ChangeState (хоть, вроде, и нет).
+            // CR(iloktionov): Аналогичный вопрос про Task.Run, что ниже.
             if (newState.ConnectionState == ConnectionState.Expired)
                 ResetClient(newState);
             else if (!newState.IsConnected)
