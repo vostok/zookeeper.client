@@ -18,30 +18,49 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly string ConnectionString;
         private readonly Lazy<ZooKeeperNetExClient> lazyClient;
         private readonly DateTime created = DateTime.UtcNow;
-        
-        public ClientHolderState(
+
+        private ClientHolderState(
+            bool isSuspended,
+            bool isConnected,
             Lazy<ZooKeeperNetExClient> client,
             IConnectionWatcher connectionWatcher,
             ConnectionState connectionState,
             string connectionString,
-            ZooKeeperClientSettings settings)
+            TimeBudget timeBeforeReset)
         {
+            IsSuspended = isSuspended;
+            IsConnected = isConnected;
             lazyClient = client;
+            ConnectionWatcher = connectionWatcher;
             ConnectionState = connectionState;
             ConnectionString = connectionString;
-            ConnectionWatcher = connectionWatcher;
-            TimeBeforeReset = TimeBudget.StartNew(settings.Timeout);
-            IsConnected = ConnectionState.IsConnected(settings.CanBeReadOnly);
+            TimeBeforeReset = timeBeforeReset;
         }
 
-        // CR(iloktionov): Может, заменить для ясности на фабричные методы с названиями + private-конструктор?
-        // CR(iloktionov): А то не очень-то очевидна разница и назначение разных конструкторов лишь по набору аргументов.
-        public ClientHolderState(TimeBudget suspended)
-        {
-            IsSuspended = true;
-            ConnectionState = ConnectionState.Disconnected;
-            TimeBeforeReset = suspended;
-        }
+        public static ClientHolderState CreateActive(
+            Lazy<ZooKeeperNetExClient> client,
+            IConnectionWatcher connectionWatcher,
+            ConnectionState connectionState,
+            string connectionString,
+            ZooKeeperClientSettings settings) =>
+            new ClientHolderState(
+                false,
+                connectionState.IsConnected(settings.CanBeReadOnly),
+                client,
+                connectionWatcher,
+                connectionState,
+                connectionString,
+                TimeBudget.StartNew(settings.Timeout));
+
+        public static ClientHolderState CreateSuspended(TimeBudget suspendedFor) =>
+            new ClientHolderState(
+                true,
+                false,
+                null,
+                null,
+                ConnectionState.Disconnected,
+                null,
+                suspendedFor);
 
         [CanBeNull]
         public ZooKeeperNetExClient Client
@@ -62,11 +81,13 @@ namespace Vostok.ZooKeeper.Client.Holder
         [Pure]
         public ClientHolderState WithConnectionState(ConnectionState newConnectionState, ZooKeeperClientSettings settings) =>
             new ClientHolderState(
+                IsSuspended,
+                newConnectionState.IsConnected(settings.CanBeReadOnly),
                 lazyClient,
                 ConnectionWatcher,
                 newConnectionState,
                 ConnectionString,
-                settings);
+                TimeBudget.StartNew(settings.Timeout));
 
         public void Dispose()
         {

@@ -9,7 +9,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
     // Note(kungurtsev): needed for test ILRepacked assembly without rename internalized.
     internal static class TestHelpers
     {
-        public static ClientHolderState CreateConnectedClientHolderState(ZooKeeperClientSettings settings)
+        public static ClientHolderState CreateActiveClientHolderState(ZooKeeperClientSettings settings)
         {
             var connectionString = settings.ConnectionStringProvider();
             var connectionWatcher = new ConnectionWatcher(_ => { });
@@ -28,7 +28,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-            return new ClientHolderState(client, connectionWatcher, ConnectionState.Connected, connectionString, settings);
+            return ClientHolderState.CreateActive(client, connectionWatcher, ConnectionState.Connected, connectionString, settings);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.log = log;
             this.settings = settings;
 
-            state = new ClientHolderState(null, null, ConnectionState.Disconnected, null, settings);
+            state = ClientHolderState.CreateActive(null, null, ConnectionState.Disconnected, null, settings);
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), 0.1, -3);
 
             ZooKeeperLogInjector.Register(this, this.log);
@@ -146,16 +146,16 @@ namespace Vostok.ZooKeeper.Client.Holder
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-            var suspendedDelay = suspendedManager.GetNextDelay();
-            var newState = suspendedDelay != null && !currentState.IsSuspended
-                ? new ClientHolderState(suspendedDelay)
-                : new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
+            var suspendedFor = suspendedManager.GetNextDelay();
+            var newState = suspendedFor != null && !currentState.IsSuspended
+                ? ClientHolderState.CreateSuspended(suspendedFor)
+                : ClientHolderState.CreateActive(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
 
             if (ChangeState(currentState, newState))
             {
                 newState.Client?.Touch();
 
-                // Note(kungurtsev): increase delay for each real (not suspended) client creation.
+                // Note(kungurtsev): increase delay for each active (not suspended) client creation.
                 if (!currentState.IsSuspended)
                     suspendedManager.IncreaseDelay();
 
