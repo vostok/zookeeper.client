@@ -1,6 +1,6 @@
 ﻿namespace Vostok.ZooKeeper.Client.Holder
 {
-    // CR(iloktionov): В чём смысл существования этого интерфейса?
+    // Note(kungurtsev): needed for test ILRepacked assembly without rename internalized.
     internal interface IConnectionWatcher
     {
 
