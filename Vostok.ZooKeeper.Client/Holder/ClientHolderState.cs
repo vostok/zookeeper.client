@@ -12,8 +12,6 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly ConnectionState ConnectionState;
         public readonly IConnectionWatcher ConnectionWatcher;
         public readonly TaskCompletionSource<ClientHolderState> NextState = new TaskCompletionSource<ClientHolderState>(TaskCreationOptions.RunContinuationsAsynchronously);
-        // CR(iloktionov): TimeBudget, который прилетает сюда (из 2 возможных мест), всегда создаётся через CreateNew(), а не StartNew(). 
-        // CR(iloktionov): Значит, он не начинает тикать и никогда не истечёт (а на это сверху есть всякие проверки). Почему так? 
         public readonly TimeBudget TimeBeforeReset;
         public readonly bool IsSuspended;
         public readonly bool IsConnected;
@@ -34,7 +32,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             ConnectionState = connectionState;
             ConnectionString = connectionString;
             ConnectionWatcher = connectionWatcher;
-            TimeBeforeReset = TimeBudget.CreateNew(settings.Timeout);
+            TimeBeforeReset = TimeBudget.StartNew(settings.Timeout);
             IsConnected = ConnectionState.IsConnected(settings.CanBeReadOnly);
             this.settings = settings;
         }

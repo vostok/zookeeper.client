@@ -48,7 +48,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             var jitter = delay.Multiply(Random(-maxJitterFraction, maxJitterFraction));
 
-            return TimeBudget.CreateNew(delay + jitter);
+            return TimeBudget.StartNew(delay + jitter);
         }
 
         public void IncreaseDelay() =>
