@@ -155,7 +155,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 newState.Client?.Touch();
 
-                // CR(iloktionov): Тут нужен какой-то комментарий, почему логика именно такая. Прямо тяжело воспринимать.
+                // Note(kungurtsev): increase delay for each real (not suspended) client creation.
                 if (!currentState.IsSuspended)
                     suspendedManager.IncreaseDelay();
 
