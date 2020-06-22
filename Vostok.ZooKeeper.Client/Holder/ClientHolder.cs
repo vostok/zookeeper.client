@@ -148,7 +148,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             var suspendedDelay = suspendedManager.GetNextDelay();
             var newState = suspendedDelay != null && !currentState.IsSuspended
-                ? new ClientHolderState(suspendedDelay, settings)
+                ? new ClientHolderState(suspendedDelay)
                 : new ClientHolderState(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
 
             if (ChangeState(currentState, newState))
@@ -198,7 +198,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             if (currentState == null || !ReferenceEquals(connectionEvent.EventFrom, currentState.ConnectionWatcher))
                 return;
 
-            var newState = currentState.WithConnectionState(connectionEvent.NewConnectionState);
+            var newState = currentState.WithConnectionState(connectionEvent.NewConnectionState, settings);
 
             ChangeState(currentState, newState);
         }

@@ -17,8 +17,6 @@ namespace Vostok.ZooKeeper.Client.Holder
         public readonly bool IsConnected;
         public readonly string ConnectionString;
         private readonly Lazy<ZooKeeperNetExClient> lazyClient;
-        // CR(iloktionov): Зачем здесь эти settings? Кажется, они не используются.
-        private readonly ZooKeeperClientSettings settings;
         private readonly DateTime created = DateTime.UtcNow;
         
         public ClientHolderState(
@@ -34,19 +32,15 @@ namespace Vostok.ZooKeeper.Client.Holder
             ConnectionWatcher = connectionWatcher;
             TimeBeforeReset = TimeBudget.StartNew(settings.Timeout);
             IsConnected = ConnectionState.IsConnected(settings.CanBeReadOnly);
-            this.settings = settings;
         }
 
         // CR(iloktionov): Может, заменить для ясности на фабричные методы с названиями + private-конструктор?
         // CR(iloktionov): А то не очень-то очевидна разница и назначение разных конструкторов лишь по набору аргументов.
-        public ClientHolderState(
-            TimeBudget suspended,
-            ZooKeeperClientSettings settings)
+        public ClientHolderState(TimeBudget suspended)
         {
             IsSuspended = true;
             ConnectionState = ConnectionState.Disconnected;
             TimeBeforeReset = suspended;
-            this.settings = settings;
         }
 
         [CanBeNull]
@@ -66,7 +60,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         }
 
         [Pure]
-        public ClientHolderState WithConnectionState(ConnectionState newConnectionState) =>
+        public ClientHolderState WithConnectionState(ConnectionState newConnectionState, ZooKeeperClientSettings settings) =>
             new ClientHolderState(
                 lazyClient,
                 ConnectionWatcher,

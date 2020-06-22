@@ -25,7 +25,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void Should_work_with_suspended_state()
         {
-            var state = new ClientHolderState(TimeBudget.StartNew(9.Seconds()), settings);
+            var state = new ClientHolderState(TimeBudget.StartNew(9.Seconds()));
 
             state.ConnectionState.Should().Be(ConnectionState.Disconnected);
             state.ConnectionWatcher.Should().BeNull();
