@@ -103,7 +103,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public override string ToString() =>
             IsSuspended
-                ? $"{ConnectionState} (suspended for {TimeBeforeReset.Remaining.ToPrettyString()}) at {created.ToLocalTime():s}"
+                ? $"{ConnectionState} (suspended for {TimeBeforeReset.Total.ToPrettyString()}) at {created.ToLocalTime():s}"
                 : $"{ConnectionState} at {created.ToLocalTime():s}";
     }
 }
