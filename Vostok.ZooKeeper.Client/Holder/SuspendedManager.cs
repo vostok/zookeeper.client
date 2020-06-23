@@ -25,16 +25,12 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public TimeBudget GetNextDelay()
         {
-            // CR(iloktionov): 3. Почему нужно долго ждать перед тем, как backoff начинает работать?
-            // CR(iloktionov):    По сути, нужно вызвать IncreaseDelay() 4 раза (-3 --> 1), чтобы появилась suspend-задержка.
-            // CR(iloktionov):    Каждый такой "раз" это 10 секунд (=SessionTimeout), за который успевает произойти несколько попыток коннекта.
-
             if (backoffDepth < 0 || periodCap == TimeSpan.Zero)
                 return null;
 
             var delayMs = Math.Min(periodCap.TotalMilliseconds, period.TotalMilliseconds * Math.Pow(2, backoffDepth));
             delayMs *= ThreadSafeRandom.NextDouble();
-            
+
             return TimeBudget.StartNew(delayMs.Milliseconds());
         }
 

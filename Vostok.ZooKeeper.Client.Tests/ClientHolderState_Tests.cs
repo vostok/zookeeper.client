@@ -2,8 +2,8 @@
 using NUnit.Framework;
 using Vostok.Commons.Time;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
-using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.Client.Helpers;
+using Vostok.ZooKeeper.Client.Holder;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {

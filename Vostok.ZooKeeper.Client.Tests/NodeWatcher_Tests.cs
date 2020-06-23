@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client.Tests
     internal class NodeWatcher_Tests : TestsBase
     {
         private ZooKeeperClient client;
-        
+
         [SetUp]
         public new void SetUp()
         {

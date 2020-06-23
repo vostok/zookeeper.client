@@ -147,7 +147,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var observer = GetObserver(holder);
 
             WaitForNewConnectedClient(holder);
-            
+
             Ensemble.Stop();
             WaitForDisconnectedState(holder);
 

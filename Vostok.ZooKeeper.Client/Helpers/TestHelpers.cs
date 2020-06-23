@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
+using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
-using ConnectionState = Vostok.ZooKeeper.Client.Abstractions.Model.ConnectionState;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Helpers
@@ -12,7 +12,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
         public static ClientHolderState CreateActiveClientHolderState(ZooKeeperClientSettings settings)
         {
             var connectionString = settings.ConnectionStringProvider();
-            var connectionWatcher = new ConnectionWatcher(_ => { });
+            var connectionWatcher = new ConnectionWatcher(_ => {});
 
             var client = new Lazy<ZooKeeperNetExClient>(
                 () =>
