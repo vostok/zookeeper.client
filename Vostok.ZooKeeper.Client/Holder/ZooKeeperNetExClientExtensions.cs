@@ -1,22 +1,11 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
 namespace Vostok.ZooKeeper.Client.Holder
 {
     internal static class ZooKeeperNetExClientExtensions
     {
-        public static void Dispose(this ZooKeeperNetExClient client)
-        {
-            try
-            {
-                client?.closeAsync().Wait();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
         public static long GetSessionId(this ZooKeeperNetExClient client)
         {
             try
@@ -42,6 +31,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         }
 
         // ReSharper disable once UnusedParameter.Global
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void Touch(this ZooKeeperNetExClient client)
         {
         }

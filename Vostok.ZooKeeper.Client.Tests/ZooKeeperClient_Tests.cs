@@ -17,14 +17,14 @@ namespace Vostok.ZooKeeper.Client.Tests
     {
         private ZooKeeperClient client;
 
-        [OneTimeSetUp]
-        public new void OneTimeSetUp()
+        [SetUp]
+        public new void SetUp()
         {
             client = GetClient();
         }
 
-        [OneTimeTearDown]
-        public new void OneTimeTearDown()
+        [TearDown]
+        public void TearDown()
         {
             client.Dispose();
         }
