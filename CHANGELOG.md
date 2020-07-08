@@ -1,3 +1,7 @@
+## 0.1.4 (08-07-2020):
+
+Added delays between connecting to ZooKeeper cluster if these attempts fail repeatedly (`MaximumConnectPeriodMultiplier` setting).
+
 ## 0.1.3 (16-03-2020):
 
 Suppress context flow.
