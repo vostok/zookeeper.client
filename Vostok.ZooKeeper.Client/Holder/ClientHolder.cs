@@ -39,6 +39,17 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public ConnectionState ConnectionState => state?.ConnectionState ?? ConnectionState.Died;
 
+        public TimeSpan SessionTimeout
+        {
+            get
+            {
+                var milliseconds = state?.Client?.getSessionTimeout();
+                if(milliseconds!=null)
+                    return TimeSpan.FromMilliseconds(milliseconds.Value);
+                return settings.Timeout;
+            }
+        }
+
         public long SessionId => state?.Client?.GetSessionId() ?? 0;
 
         public byte[] SessionPassword => state?.Client?.GetSessionPassword();
