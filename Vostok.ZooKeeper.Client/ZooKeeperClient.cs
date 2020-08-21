@@ -56,6 +56,11 @@ namespace Vostok.ZooKeeper.Client
         public long SessionId => clientHolder.SessionId;
 
         /// <summary>
+        /// <para>Returns negotiated session timeout or <see cref="ZooKeeperClientSettings.Timeout"/> if not connected.</para>
+        /// </summary>
+        public TimeSpan SessionTimeout => clientHolder.SessionTimeout;
+
+        /// <summary>
         /// Returns client session password or null if not connected.
         /// </summary>
         public byte[] SessionPassword => clientHolder.SessionPassword;

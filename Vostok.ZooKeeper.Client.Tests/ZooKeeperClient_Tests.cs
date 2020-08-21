@@ -40,6 +40,35 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void SessionTimeout_should_be_default_when_NotConnected()
+        {
+            Ensemble.Stop();
+            WaitForDisconnectedState(client);
+            client.SessionTimeout.Should().Be(DefaultTimeout);
+        }
+
+        [Test]
+        public void SessionTimeout_should_be_default_for_new_client()
+        {
+            using (var newClient = GetClient())
+            {
+                newClient.SessionTimeout.Should().Be(DefaultTimeout);
+            }
+        }
+
+        [Test]
+        public async Task SessionTimeout_should_be_given_when_Connected()
+        {
+            // internal zk client saves only [int32 milliseconds]. use this to check actual SessionTimeout got from zk client not settings
+            using (var newClient = GetClient(TimeSpan.FromMilliseconds(10000 + 0.4)))
+            {
+                await client.CreateAsync("/timeout", CreateMode.Persistent);
+                newClient.SessionTimeout.Should().Be(TimeSpan.FromMilliseconds(10000));
+            }
+        }
+
+
+        [Test]
         public async Task Should_reconnect()
         {
             Ensemble.Stop();

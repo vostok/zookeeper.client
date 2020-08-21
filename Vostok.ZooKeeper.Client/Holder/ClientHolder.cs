@@ -43,6 +43,8 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public byte[] SessionPassword => state?.Client?.GetSessionPassword();
 
+        public TimeSpan SessionTimeout => state?.Client?.GetSessionTimeout() ?? settings.Timeout;
+
         public async Task<ZooKeeperNetExClient> GetConnectedClient()
         {
             var budget = TimeBudget.StartNew(settings.Timeout);
