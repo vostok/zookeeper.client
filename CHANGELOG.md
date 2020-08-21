@@ -1,3 +1,8 @@
+## 0.1.5 (21-08-2020):
+
+Added `SessionTimeout` field.
+
+
 ## 0.1.4 (08-07-2020):
 
 Added delays between connecting to ZooKeeper cluster if these attempts fail repeatedly (`MaximumConnectPeriodMultiplier` setting).
