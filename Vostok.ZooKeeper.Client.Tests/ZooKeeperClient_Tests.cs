@@ -48,6 +48,15 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public void SessionTimeout_should_be_default_for_new_client()
+        {
+            using (var newClient = GetClient())
+            {
+                newClient.SessionTimeout.Should().Be(DefaultTimeout);
+            }
+        }
+
+        [Test]
         public async Task SessionTimeout_should_be_given_when_Connected()
         {
             // internal zk client saves only [int32 milliseconds]. use this to check actual SessionTimeout got from zk client not settings
