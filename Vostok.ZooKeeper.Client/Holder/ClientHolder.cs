@@ -138,11 +138,15 @@ namespace Vostok.ZooKeeper.Client.Holder
                 {
                     using (ExecutionContext.SuppressFlow())
                     {
-                        return new ZooKeeperNetExClient(
+                        var zk = new ZooKeeperNetExClient(
                             newConnectionString,
                             settings.ToInnerConnectionTimeout(),
                             newConnectionWatcher,
                             settings.CanBeReadOnly);
+
+                        if(settings.AuthenticationInfo != null)
+                            zk.addAuthInfo(settings.AuthenticationInfo.Scheme, settings.AuthenticationInfo.Data);
+                        return zk;
                     }
                 },
                 LazyThreadSafetyMode.ExecutionAndPublication);
