@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using org.apache.zookeeper;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
@@ -21,7 +20,12 @@ namespace Vostok.ZooKeeper.Client.Operations
             if (!NodeHelper.ValidateDataSize(Request.Data))
                 return CreateUnsuccessfulResult(ZooKeeperStatus.BadArguments, NodeHelper.DataSizeLimitExceededException(Request.Data));
 
-            var newPath = await client.createAsync(Request.Path, Request.Data, ZooDefs.Ids.OPEN_ACL_UNSAFE, Request.CreateMode.ToInnerCreateMode()).ConfigureAwait(false);
+            var newPath = await client.createAsync(
+                    Request.Path,
+                    Request.Data,
+                    Request.Acls.ToInnerAcls(),
+                    Request.CreateMode.ToInnerCreateMode())
+                .ConfigureAwait(false);
             return CreateResult.Successful(Request.Path, newPath);
         }
 

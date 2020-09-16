@@ -101,6 +101,14 @@ namespace Vostok.ZooKeeper.Client
         public Task<GetDataResult> GetDataAsync(GetDataRequest request) =>
             ExecuteOperation(new GetDataOperation(request, watcherWrapper));
 
+        /// <inheritdoc />
+        public Task<GetAclResult> GetAclAsync(GetAclRequest request) =>
+            ExecuteOperation(new GetAclOperation(request));
+
+        /// <inheritdoc />
+        public Task<SetAclResult> SetAclAsync(SetAclRequest request) =>
+            ExecuteOperation(new SetAclOperation(request));
+
         /// <summary>
         /// <para>Dispose this client object.</para>
         /// <para>Once the client is closed, its session becomes invalid.</para>

@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using org.apache.zookeeper;
 using org.apache.zookeeper.data;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using CreateMode = org.apache.zookeeper.CreateMode;
+using Id = Vostok.ZooKeeper.Client.Abstractions.Model.Id;
+using InnerId = org.apache.zookeeper.data.Id;
 
 namespace Vostok.ZooKeeper.Client.Helpers
 {
@@ -68,6 +72,10 @@ namespace Vostok.ZooKeeper.Client.Helpers
                     return ZooKeeperStatus.SessionMoved;
                 case KeeperException.Code.NOTREADONLY:
                     return ZooKeeperStatus.NotReadonlyOperation;
+                case KeeperException.Code.INVALIDACL:
+                    return ZooKeeperStatus.InvalidAcl;
+                case KeeperException.Code.NOAUTH:
+                    return ZooKeeperStatus.NoAuth;
             }
 
             return ZooKeeperStatus.UnknownError;
@@ -103,6 +111,40 @@ namespace Vostok.ZooKeeper.Client.Helpers
                 default:
                     return ConnectionState.Disconnected;
             }
+        }
+
+        public static List<ACL> ToInnerAcls(this List<Acl> accessLists)
+        {
+            return accessLists == null
+                ? ZooDefs.Ids.OPEN_ACL_UNSAFE
+                : accessLists.Select(acl => acl.ToInnerAcl()).ToList();
+        }
+
+        public static List<Acl> ToAcls(this List<ACL> accessLists)
+        {
+            return accessLists == null
+                ? new List<Acl>()
+                : accessLists.Select(acl => acl.ToAcl()).ToList();
+        }
+
+        public static ACL ToInnerAcl(this Acl acl)
+        {
+            return new ACL((int)acl.Permissions, acl.Id.ToInnerId());
+        }
+
+        public static Acl ToAcl(this ACL acl)
+        {
+            return new Acl((Permissions)acl.getPerms(), acl.getId().ToId());
+        }
+
+        public static InnerId ToInnerId(this Id id)
+        {
+            return new InnerId(id.Scheme, id.Identifier);
+        }
+
+        public static Id ToId(this InnerId id)
+        {
+            return new Id(id.getScheme(), id.getId());
         }
     }
 }

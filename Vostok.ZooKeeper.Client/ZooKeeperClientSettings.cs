@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Vostok.Commons.Collections;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
+using Vostok.ZooKeeper.Client.Abstractions.Model;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -82,6 +83,11 @@ namespace Vostok.ZooKeeper.Client
         /// <para>Maximum <see cref="Timeout"/> multiplier for delays between attempts of connecting to ZooKeeper cluster.</para>
         /// </summary>
         public int MaximumConnectPeriodMultiplier { get; set; } = 10;
+
+        /// <summary>
+        /// <para>Credentials to be used by <see cref="ZooKeeperClient"/> instance.</para>
+        /// </summary>
+        public AuthenticationInfo AuthenticationInfo { get; set; }
 
         private static string BuildConnectionString(IList<Uri> uris)
             => uris == null ? null : string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
