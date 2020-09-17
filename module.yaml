@@ -14,7 +14,7 @@ notests *default:
     - vostok.commons.helpers/src
     - vostok.commons.threading/src
     - vostok.logging.abstractions
-    - vostok.zookeeper.client.abstractions
+    - vostok.zookeeper.client.abstractions@acl
     - vostok.devtools
 
 full-build > notests:

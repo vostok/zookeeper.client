@@ -225,6 +225,21 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        public async Task OnConnectionStateChanged_should_observe_auth_failed()
+        {
+            var holder = GetClientHolder(Ensemble.ConnectionString);
+            var observer = GetObserver(holder);
+
+            WaitForNewConnectedClient(holder);
+
+            var client = await holder.GetConnectedClient();
+
+            client.addAuthInfo("bad_scheme", new byte[0]);
+
+            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.AuthFailed, ConnectionState.Disconnected, ConnectionState.Connected);
+        }
+
+        [Test]
         public void OnConnectionStateChanged_should_observe_reconnected()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);

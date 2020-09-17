@@ -19,6 +19,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="System.Management" Version="4.5.0" />
     <PackageReference Include="System.Reactive" Version="4.1.3" />
+    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vostok.ZooKeeper.Client\Vostok.ZooKeeper.Client.csproj" />
