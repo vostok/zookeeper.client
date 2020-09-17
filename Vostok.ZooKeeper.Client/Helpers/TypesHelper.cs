@@ -76,6 +76,8 @@ namespace Vostok.ZooKeeper.Client.Helpers
                     return ZooKeeperStatus.InvalidAcl;
                 case KeeperException.Code.NOAUTH:
                     return ZooKeeperStatus.NoAuth;
+                case KeeperException.Code.AUTHFAILED:
+                    return ZooKeeperStatus.AuthFailed;
             }
 
             return ZooKeeperStatus.UnknownError;
@@ -108,6 +110,9 @@ namespace Vostok.ZooKeeper.Client.Helpers
                     return ConnectionState.ConnectedReadonly;
                 case Watcher.Event.KeeperState.Expired:
                     return ConnectionState.Expired;
+                case Watcher.Event.KeeperState.AuthFailed:
+                    return ConnectionState.AuthFailed;
+
                 default:
                     return ConnectionState.Disconnected;
             }
