@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -20,8 +21,9 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly ZooKeeperClientSettings settings;
         private readonly AtomicBoolean isDisposed = false;
         private readonly SuspendedManager suspendedManager;
-        private readonly AuthenticationInfoStorage authenticationInfoStorage;
         private readonly object addAuthSyncObj;
+        private readonly List<AuthenticationInfo> authenticationInfos;
+
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         [CanBeNull]
@@ -34,7 +36,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             state = ClientHolderState.CreateActive(null, null, ConnectionState.Disconnected, null, settings);
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), -3);
-            authenticationInfoStorage = new AuthenticationInfoStorage();
+            authenticationInfos = new List<AuthenticationInfo>();
             addAuthSyncObj = new object();
 
             ZooKeeperLogInjector.Register(this, this.log);
@@ -75,9 +77,9 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void AddAuthenticationInfo(AuthenticationInfo authenticationInfo)
         {
-            authenticationInfoStorage.Add(authenticationInfo);
             lock (addAuthSyncObj)
             {
+                authenticationInfos.Add(authenticationInfo);
                 state?.Client?.addAuthInfo(authenticationInfo.Scheme, authenticationInfo.Data);
             }
         }
@@ -147,7 +149,6 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
 
             var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
-            var authRules = authenticationInfoStorage.GetAll();
             var newClient = new Lazy<ZooKeeperNetExClient>(
                 () =>
                 {
@@ -159,8 +160,11 @@ namespace Vostok.ZooKeeper.Client.Holder
                             newConnectionWatcher,
                             settings.CanBeReadOnly);
 
-                        foreach (var authRule in authRules)
-                            zk.addAuthInfo(authRule.Scheme, authRule.Data);
+                        lock (addAuthSyncObj)
+                        {
+                            foreach (var authenticationInfo in authenticationInfos)
+                                zk.addAuthInfo(authenticationInfo.Scheme, authenticationInfo.Data);
+                        }
 
                         return zk;
                     }
