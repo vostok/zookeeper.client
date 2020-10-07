@@ -6,6 +6,7 @@ using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 using Vostok.ZooKeeper.Client.Helpers;
@@ -108,6 +109,11 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public Task<SetAclResult> SetAclAsync(SetAclRequest request) =>
             ExecuteOperation(new SetAclOperation(request));
+
+        public void AddAuthenticationInfo(AuthenticationInfo authenticationInfo)
+        {
+            clientHolder.AddAuthenticationInfo(authenticationInfo);
+        }
 
         /// <summary>
         /// <para>Dispose this client object.</para>

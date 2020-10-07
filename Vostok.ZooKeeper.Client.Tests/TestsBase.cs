@@ -11,7 +11,6 @@ using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
-using Vostok.ZooKeeper.Testing;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -83,13 +82,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         protected static Task KillSession(ZooKeeperClient client, string connectionString) =>
             ZooKeeperClientTestsHelper.KillSession(client.SessionId, client.SessionPassword, client.OnConnectionStateChanged, connectionString, DefaultTimeout);
 
-        protected ZooKeeperClient GetClient(TimeSpan? timeout = null, AuthenticationInfo authenticationInfo = null)
+        protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
             var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString)
             {
                 Timeout = timeout ?? DefaultTimeout,
-                LoggingLevel = LogLevel.Debug,
-                AuthenticationInfo = authenticationInfo
+                LoggingLevel = LogLevel.Debug
             };
             return new ZooKeeperClient(settings, Log);
         }
