@@ -12,7 +12,6 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
-using CreateMode = org.apache.zookeeper.CreateMode;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -196,7 +195,7 @@ namespace Vostok.ZooKeeper.Client.Tests
                 var client = holder.GetConnectedClient().Result;
 
                 var acls = new List<Acl> {Acl.Digest(Permissions.All, login, password)}.ToInnerAcls();
-                client.createAsync(path, new byte[0], acls, CreateMode.PERSISTENT).GetAwaiter().GetResult();
+                client.createAsync(path, new byte[0], acls, org.apache.zookeeper.CreateMode.PERSISTENT).GetAwaiter().GetResult();
 
                 ensemble1.Dispose();
                 WaitForDisconnectedState(holder);
@@ -210,7 +209,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
                     WaitForNewConnectedClient(holder);
                     client = holder.GetConnectedClient().GetAwaiter().GetResult();
-                    client.createAsync(path, new byte[0], acls, CreateMode.PERSISTENT).GetAwaiter().GetResult();
+                    client.createAsync(path, new byte[0], acls, org.apache.zookeeper.CreateMode.PERSISTENT).GetAwaiter().GetResult();
 
                     client.getACLAsync(path).GetAwaiter().GetResult().Acls.Count.Should().Be(1);
                 }
