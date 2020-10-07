@@ -11,6 +11,7 @@ using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
+using Vostok.ZooKeeper.Testing;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
