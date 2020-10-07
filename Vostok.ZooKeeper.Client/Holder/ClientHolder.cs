@@ -8,6 +8,7 @@ using Vostok.Commons.Threading;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Helpers;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
 
@@ -19,6 +20,8 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly ZooKeeperClientSettings settings;
         private readonly AtomicBoolean isDisposed = false;
         private readonly SuspendedManager suspendedManager;
+        private readonly AuthenticationInfoStorage authenticationInfoStorage;
+        private readonly object addAuthSyncObj;
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
         [CanBeNull]
@@ -31,6 +34,8 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             state = ClientHolderState.CreateActive(null, null, ConnectionState.Disconnected, null, settings);
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), -3);
+            authenticationInfoStorage = new AuthenticationInfoStorage();
+            addAuthSyncObj = new object();
 
             ZooKeeperLogInjector.Register(this, this.log);
         }
@@ -66,6 +71,15 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
 
             return null;
+        }
+
+        public void AddAuthenticationInfo(AuthenticationInfo authenticationInfo)
+        {
+            authenticationInfoStorage.Add(authenticationInfo);
+            lock (addAuthSyncObj)
+            {
+                state?.Client?.addAuthInfo(authenticationInfo.Scheme, authenticationInfo.Data);
+            }
         }
 
         public void Dispose()
@@ -133,6 +147,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             }
 
             var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
+            var authRules = authenticationInfoStorage.GetAll();
             var newClient = new Lazy<ZooKeeperNetExClient>(
                 () =>
                 {
@@ -144,8 +159,9 @@ namespace Vostok.ZooKeeper.Client.Holder
                             newConnectionWatcher,
                             settings.CanBeReadOnly);
 
-                        if(settings.AuthenticationInfo != null)
-                            zk.addAuthInfo(settings.AuthenticationInfo.Scheme, settings.AuthenticationInfo.Data);
+                        foreach (var authRule in authRules)
+                            zk.addAuthInfo(authRule.Scheme, authRule.Data);
+
                         return zk;
                     }
                 },

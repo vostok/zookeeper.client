@@ -4,8 +4,9 @@ using System.Linq;
 using org.apache.zookeeper;
 using org.apache.zookeeper.data;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using CreateMode = org.apache.zookeeper.CreateMode;
-using Id = Vostok.ZooKeeper.Client.Abstractions.Model.Id;
+using Id = Vostok.ZooKeeper.Client.Abstractions.Model.Authentication.Id;
 using InnerId = org.apache.zookeeper.data.Id;
 
 namespace Vostok.ZooKeeper.Client.Helpers

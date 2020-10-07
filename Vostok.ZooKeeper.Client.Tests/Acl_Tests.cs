@@ -4,6 +4,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 
 namespace Vostok.ZooKeeper.Client.Tests
@@ -108,7 +109,8 @@ namespace Vostok.ZooKeeper.Client.Tests
             createResult.EnsureSuccess();
 
             var authInfo = AuthenticationInfo.Digest(login, password);
-            var testClient = GetClient(null, authInfo);
+            var testClient = GetClient(null);
+            testClient.AddAuthenticationInfo(authInfo);
 
             var getResult = await testClient.GetDataAsync(path);
             getResult.EnsureSuccess();
