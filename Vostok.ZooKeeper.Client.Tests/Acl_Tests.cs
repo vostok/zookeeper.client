@@ -6,6 +6,7 @@ using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
+using Vostok.ZooKeeper.LocalEnsemble;
 
 namespace Vostok.ZooKeeper.Client.Tests
 {
@@ -143,6 +144,46 @@ namespace Vostok.ZooKeeper.Client.Tests
             var getResult = await client.GetDataAsync(path);
             getResult.IsSuccessful.Should().BeFalse();
             getResult.Status.Should().Be(ZooKeeperStatus.NoAuth);
+        }
+
+        [Test]
+        public async Task Should_reconnect_to_new_ensemble_with_provided_auth_info()
+        {
+            using(var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))
+            {
+                var connectionString = ensemble1.ConnectionString;
+                var path = "/auth";
+                var login = "testlogin";
+                var password = "testpassword";
+
+                var client = new ZooKeeperClient(new ZooKeeperClientSettings(() =>connectionString), Log);
+
+                var createRequest = new CreateRequest(path, CreateMode.Persistent)
+                {
+                    Acls = new List<Acl> { Acl.Digest(Permissions.All, login, password) }
+                };
+
+                var createResult = await client.CreateAsync(createRequest);
+                createResult.EnsureSuccess();
+
+                var authInfo = AuthenticationInfo.Digest(login, password);
+                var testClient = new ZooKeeperClient(new ZooKeeperClientSettings(() => connectionString), Log);
+                testClient.AddAuthenticationInfo(authInfo);
+
+                (await testClient.CreateAsync(new CreateRequest("/bla/bla", CreateMode.Persistent))).EnsureSuccess();
+                ensemble1.Dispose();
+                WaitForDisconnectedState(client);
+                using(var ensemble2 = ZooKeeperEnsemble.DeployNew(11, 1, Log))
+                {
+                    ensemble2.ConnectionString.Should().NotBe(connectionString);
+                    connectionString = ensemble2.ConnectionString;
+                   
+                    await client.CreateAsync(createRequest);
+
+                    var res = (await testClient.GetDataAsync(path));
+                    res.EnsureSuccess();
+                }
+            }
         }
     }
 }
