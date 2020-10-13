@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +7,6 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
-using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
-using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.LocalEnsemble;
 
@@ -172,48 +169,6 @@ namespace Vostok.ZooKeeper.Client.Tests
                 ConnectionState.Disconnected,
                 ConnectionState.Connected
             );
-        }
-
-        [Test]
-        public void GetConnectedClient_should_reconnect_to_new_ensemble_with_provided_auth_info()
-        {
-            using (var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))
-            {
-                var connectionString = ensemble1.ConnectionString;
-                // ReSharper disable once AccessToModifiedClosure
-                var settings = new ZooKeeperClientSettings(() => connectionString) {Timeout = DefaultTimeout};
-
-                var holder = new ClientHolder(settings, Log);
-                WaitForNewConnectedClient(holder);
-
-                var login = "login";
-                var password = "password";
-                var path = "/path";
-
-                var authInfo = AuthenticationInfo.Digest(login, password);
-                holder.AddAuthenticationInfo(authInfo);
-                var client = holder.GetConnectedClient().Result;
-
-                var acls = new List<Acl> {Acl.Digest(Permissions.All, login, password)}.ToInnerAcls();
-                client.createAsync(path, new byte[0], acls, org.apache.zookeeper.CreateMode.PERSISTENT).GetAwaiter().GetResult();
-
-                ensemble1.Dispose();
-                WaitForDisconnectedState(holder);
-
-                using (var ensemble2 = ZooKeeperEnsemble.DeployNew(11, 1, Log))
-                {
-                    ensemble2.ConnectionString.Should().NotBe(connectionString);
-                    connectionString = ensemble2.ConnectionString;
-
-                    Thread.Sleep(DefaultTimeout);
-
-                    WaitForNewConnectedClient(holder);
-                    client = holder.GetConnectedClient().GetAwaiter().GetResult();
-                    client.createAsync(path, new byte[0], acls, org.apache.zookeeper.CreateMode.PERSISTENT).GetAwaiter().GetResult();
-
-                    client.getACLAsync(path).GetAwaiter().GetResult().Acls.Count.Should().Be(1);
-                }
-            }
         }
 
         [Test]
