@@ -33,7 +33,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/acl_node_create";
             var acls = new List<Acl>
             {
-                Acl.Digest(Permissions.All, "user", "password"),
+                Acl.Digest(AclPermissions.All, "user", "password"),
                 Acl.ReadUnsafe
             };
             var createRequest = new CreateRequest(path, CreateMode.Persistent)
@@ -58,7 +58,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var acls = new List<Acl>
             {
-                Acl.Digest(Permissions.All, "user", "password"),
+                Acl.Digest(AclPermissions.All, "user", "password"),
                 Acl.ReadUnsafe
             };
             var setResult = await client.SetAclAsync(path, acls);
@@ -104,7 +104,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var createRequest = new CreateRequest(path, CreateMode.Persistent)
             {
-                Acls = new List<Acl> { Acl.Digest(Permissions.All, login, password) }
+                Acls = new List<Acl> { Acl.Digest(AclPermissions.All, login, password) }
             };
             var createResult = await client.CreateAsync(createRequest);
             createResult.EnsureSuccess();
@@ -136,7 +136,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var path = "/noauth";
             var createRequest = new CreateRequest(path, CreateMode.Persistent)
             {
-                Acls = new List<Acl> {Acl.Digest(Permissions.All, "user", "password")}
+                Acls = new List<Acl> {Acl.Digest(AclPermissions.All, "user", "password")}
             };
             var createResult = await client.CreateAsync(createRequest);
             createResult.EnsureSuccess();
@@ -160,7 +160,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
                 var createRequest = new CreateRequest(path, CreateMode.Persistent)
                 {
-                    Acls = new List<Acl> { Acl.Digest(Permissions.All, login, password) }
+                    Acls = new List<Acl> { Acl.Digest(AclPermissions.All, login, password) }
                 };
 
                 var createResult = await client.CreateAsync(createRequest);

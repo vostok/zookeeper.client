@@ -6,7 +6,7 @@ using org.apache.zookeeper.data;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using CreateMode = org.apache.zookeeper.CreateMode;
-using Id = Vostok.ZooKeeper.Client.Abstractions.Model.Authentication.Id;
+using Id = Vostok.ZooKeeper.Client.Abstractions.Model.Authentication.AclId;
 using InnerId = org.apache.zookeeper.data.Id;
 
 namespace Vostok.ZooKeeper.Client.Helpers
@@ -119,7 +119,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
             }
         }
 
-        public static List<ACL> ToInnerAcls(this List<Acl> accessLists)
+        public static List<ACL> ToInnerAcls(this IReadOnlyList<Acl> accessLists)
         {
             return accessLists == null
                 ? ZooDefs.Ids.OPEN_ACL_UNSAFE
@@ -140,7 +140,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
 
         public static Acl ToAcl(this ACL acl)
         {
-            return new Acl((Permissions)acl.getPerms(), acl.getId().ToId());
+            return new Acl((AclPermissions)acl.getPerms(), acl.getId().ToId());
         }
 
         public static InnerId ToInnerId(this Id id)
