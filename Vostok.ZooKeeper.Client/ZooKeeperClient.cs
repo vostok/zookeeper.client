@@ -56,15 +56,21 @@ namespace Vostok.ZooKeeper.Client
         /// <inheritdoc />
         public long SessionId => clientHolder.SessionId;
 
-        /// <summary>
-        /// <para>Returns negotiated session timeout or <see cref="ZooKeeperClientSettings.Timeout"/> if not connected.</para>
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan SessionTimeout => clientHolder.SessionTimeout;
 
         /// <summary>
         /// Returns client session password or null if not connected.
         /// </summary>
         public byte[] SessionPassword => clientHolder.SessionPassword;
+
+        /// <inheritdoc />
+        public async Task<bool> ConnectAsync()
+        {
+            var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
+
+            return client != null;
+        }
 
         /// <inheritdoc />
         public async Task<CreateResult> CreateAsync(CreateRequest request)
