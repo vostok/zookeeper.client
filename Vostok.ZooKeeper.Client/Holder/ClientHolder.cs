@@ -77,8 +77,8 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             lock (authenticationInfos)
             {
-                authenticationInfos.Add(authenticationInfo);
-                state?.Client?.addAuthInfo(authenticationInfo.Scheme, authenticationInfo.Data);
+                if (authenticationInfos.Add(authenticationInfo))
+                    state?.Client?.addAuthInfo(authenticationInfo.Scheme, authenticationInfo.Data);
             }
         }
 
