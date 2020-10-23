@@ -21,7 +21,7 @@ namespace Vostok.ZooKeeper.Client.Holder
         private readonly ZooKeeperClientSettings settings;
         private readonly AtomicBoolean isDisposed = false;
         private readonly SuspendedManager suspendedManager;
-        private readonly List<AuthenticationInfo> authenticationInfos;
+        private readonly HashSet<AuthenticationInfo> authenticationInfos;
 
         private ConnectionState lastSentConnectionState = ConnectionState.Disconnected;
 
@@ -35,7 +35,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
             state = ClientHolderState.CreateActive(null, null, ConnectionState.Disconnected, null, settings);
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), -3);
-            authenticationInfos = new List<AuthenticationInfo>();
+            authenticationInfos = new HashSet<AuthenticationInfo>(AuthenticationInfoComparer.Instance);
 
             ZooKeeperLogInjector.Register(this, this.log);
         }
