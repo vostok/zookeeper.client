@@ -21,7 +21,7 @@ namespace Vostok.ZooKeeper.Client
     /// <para>This client automatically reconnects to ZooKeeper cluster on disconnect or session expiry.</para>
     /// </summary>
     [PublicAPI]
-    public class ZooKeeperClient : IZooKeeperClient, IDisposable
+    public class ZooKeeperClient : IZooKeeperClient, IAuthZooKeeperClient, IDisposable
     {
         private readonly ILog log;
         private readonly ZooKeeperClientSettings settings;
