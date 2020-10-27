@@ -116,12 +116,6 @@ namespace Vostok.ZooKeeper.Client
             clientHolder.AddAuthenticationInfo(authenticationInfo);
         }
 
-        /// <inheritdoc />
-        public void AddAuthenticationInfo(string login, string password)
-        {
-            clientHolder.AddAuthenticationInfo(AuthenticationInfo.Digest(login, password));
-        }
-
         /// <summary>
         /// <para>Dispose this client object.</para>
         /// <para>Once the client is closed, its session becomes invalid.</para>
