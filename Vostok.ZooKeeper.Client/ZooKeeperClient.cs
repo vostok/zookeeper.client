@@ -110,9 +110,16 @@ namespace Vostok.ZooKeeper.Client
         public Task<SetAclResult> SetAclAsync(SetAclRequest request) =>
             ExecuteOperation(new SetAclOperation(request));
 
+        /// <inheritdoc />
         public void AddAuthenticationInfo(AuthenticationInfo authenticationInfo)
         {
             clientHolder.AddAuthenticationInfo(authenticationInfo);
+        }
+
+        /// <inheritdoc />
+        public void AddAuthenticationInfo(string login, string password)
+        {
+            clientHolder.AddAuthenticationInfo(AuthenticationInfo.Digest(login, password));
         }
 
         /// <summary>

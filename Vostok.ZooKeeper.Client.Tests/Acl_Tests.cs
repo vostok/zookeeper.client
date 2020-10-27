@@ -185,5 +185,26 @@ namespace Vostok.ZooKeeper.Client.Tests
                 }
             }
         }
+
+        [Test]
+        public async Task Should_add_auth_with_digest_scheme_by_default()
+        {
+            var path = "/test-auth";
+            var login = "test-login";
+            var password = "test-password";
+
+            var createRequest = new CreateRequest(path, CreateMode.Persistent)
+            {
+                Acls = new List<Acl> { Acl.Digest(AclPermissions.All, login, password) }
+            };
+            var createResult = await client.CreateAsync(createRequest);
+            createResult.EnsureSuccess();
+
+            var testClient = GetClient(null);
+            testClient.AddAuthenticationInfo(login, password);
+
+            var getResult = await testClient.GetDataAsync(path);
+            getResult.EnsureSuccess();
+        }
     }
 }
