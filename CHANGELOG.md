@@ -1,3 +1,7 @@
+## 0.1.6 (03-11-2020):
+
+Implemented IZooKeeperAuthClient interface.
+
 ## 0.1.5 (21-08-2020):
 
 Added `SessionTimeout` field.
