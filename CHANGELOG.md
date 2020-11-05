@@ -1,3 +1,7 @@
+## 0.1.7 (05-11-2020):
+
+Return rename internalize option for ilrepack.
+
 ## 0.1.6 (03-11-2020):
 
 Implemented IZooKeeperAuthClient interface.

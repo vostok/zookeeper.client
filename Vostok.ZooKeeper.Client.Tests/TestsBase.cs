@@ -10,6 +10,7 @@ using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
+using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.LocalEnsemble;
 using Vostok.ZooKeeper.Testing;
 
@@ -43,7 +44,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         protected static void WaitForNewConnectedClient(ClientHolder holder)
         {
-            holder.GetConnectedClient().ShouldCompleteIn(DefaultTimeout).Should().NotBe(null);
+            holder.GetConnectedClientObject().ShouldCompleteIn(DefaultTimeout).Should().NotBe(null);
             holder.ConnectionState.Should().Be(ConnectionState.Connected);
         }
 

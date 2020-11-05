@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
 using ZooKeeperNetExClient = org.apache.zookeeper.ZooKeeper;
@@ -30,5 +31,8 @@ namespace Vostok.ZooKeeper.Client.Helpers
 
             return ClientHolderState.CreateActive(client, connectionWatcher, ConnectionState.Connected, connectionString, settings);
         }
+
+        public static async Task<object> GetConnectedClientObject(this ClientHolder clientHolder) =>
+            await clientHolder.GetConnectedClient();
     }
 }
