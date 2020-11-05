@@ -1,4 +1,4 @@
-## 0.1.7 (05-11-2020):
+## 0.1.8 (05-11-2020):
 
 Return rename internalize option for ilrepack.
 

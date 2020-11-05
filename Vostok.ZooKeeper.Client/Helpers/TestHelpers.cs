@@ -33,6 +33,6 @@ namespace Vostok.ZooKeeper.Client.Helpers
         }
 
         public static async Task<object> GetConnectedClientObject(this ClientHolder clientHolder) =>
-            await clientHolder.GetConnectedClient();
+            await clientHolder.GetConnectedClient().ConfigureAwait(false);
     }
 }
