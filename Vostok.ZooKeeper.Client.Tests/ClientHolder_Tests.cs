@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,9 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Holder;
+using Vostok.ZooKeeper.Client.Helpers;
 using Vostok.ZooKeeper.LocalEnsemble;
 
 namespace Vostok.ZooKeeper.Client.Tests
@@ -32,7 +35,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
             var holder = GetClientHolder(Ensemble.ConnectionString, 1.Seconds());
 
-            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
+            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds());
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
@@ -43,7 +46,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         {
             var holder = GetClientHolder(null, 1.Seconds());
 
-            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
+            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds());
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
@@ -225,18 +228,17 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        public async Task OnConnectionStateChanged_should_observe_auth_failed()
+        public void OnConnectionStateChanged_should_observe_auth_failed()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
 
             WaitForNewConnectedClient(holder);
 
-            var client = await holder.GetConnectedClient();
+            holder.AddAuthenticationInfo(new AuthenticationInfo("bad_scheme", new byte[0]));
 
-            client.addAuthInfo("bad_scheme", new byte[0]);
-
-            VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.AuthFailed, ConnectionState.Disconnected, ConnectionState.Connected);
+            Action assertion = () => { observer.Messages.Should().Contain(m => m.Value == ConnectionState.AuthFailed); };
+            assertion.ShouldPassIn(DefaultTimeout, 0.5.Seconds());
         }
 
         [Test]
@@ -283,7 +285,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             var holder = GetClientHolder(Ensemble.ConnectionString);
             WaitForNewConnectedClient(holder);
             holder.Dispose();
-            var client = holder.GetConnectedClient().ShouldCompleteImmediately();
+            var client = holder.GetConnectedClientObject().ShouldCompleteImmediately();
             client.Should().BeNull();
         }
 
@@ -295,7 +297,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             holder.Dispose();
             holder.Dispose();
             holder.Dispose();
-            var client = holder.GetConnectedClient().ShouldCompleteImmediately();
+            var client = holder.GetConnectedClientObject().ShouldCompleteImmediately();
             client.Should().BeNull();
         }
 
@@ -303,7 +305,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         public void Dispose_should_be_tolerant_to_null_client()
         {
             var holder = GetClientHolder(null, 1.Seconds());
-            holder.GetConnectedClient().ShouldCompleteIn(1.5.Seconds());
+            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds());
             holder.Dispose();
         }
 
