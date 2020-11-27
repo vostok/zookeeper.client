@@ -1,0 +1,90 @@
+name: Vostok
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}    
+
+    steps:
+      
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v1.4.0
+      
+    - name: Download Cement
+      run: | 
+        Invoke-WebRequest "https://github.com/skbkontur/cement/releases/download/v1.0.58/63d70a890a8a69703c066965196021afb7a793c1.zip" -Out "cement.zip"
+        Expand-Archive "cement.zip" -Force -DestinationPath "./cement"       
+      shell: pwsh
+    
+    - name: Install Cement
+      run: |
+        cd ./cement
+        cd ./dotnet
+        chmod +x ./install.sh
+        ./install.sh
+        ~/bin/cm --version
+      shell: bash
+      if: runner.os != 'Windows'
+    
+    - name: Install Cement
+      run: |
+        cd ./cement
+        cd ./dotnet
+        ./install.cmd
+        cm --version
+      shell: cmd
+      if: runner.os == 'Windows'
+    
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+      with:
+        path: vostok.module
+        
+    - name: Update deps
+      run: | 
+        pwd
+        ls
+        ~/bin/cm init
+        cd ./vostok.module
+        ~/bin/cm update-deps
+      shell: bash
+        
+    - name: Build deps
+      run: |
+        cd ./vostok.module
+        ~/bin/cm build-deps
+      shell: bash
+    
+    - name: Build
+      run: |
+        cd ./vostok.module
+        dotnet build -c Release
+        
+    - name: Test
+      run: |        
+        Set-Location "./vostok.module"
+        
+        # Locate tests project folder:
+        $testProjectFolder = Get-ChildItem "." | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith(".Tests") } | Select-Object -First 1 | % { $_.FullName }
+        
+        if ($testProjectFolder) {
+          if ("${{ runner.os }}" -eq "macOS") {
+            dotnet test -c Release "$testProjectFolder" -f netcoreapp3.1
+          }
+          else {
+            dotnet test -c Release "$testProjectFolder"
+          }
+          if ($LASTEXITCODE -ne 0) { throw "There were some failed tests." }
+        } else {
+          Write-Host "There are no tests to run."
+        }
+      shell: pwsh
+        
+        
+    
+  
