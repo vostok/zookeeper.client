@@ -124,9 +124,9 @@ namespace Vostok.ZooKeeper.Client.Tests
 
                     var sid2 = holder.SessionId;
                     sid2.Should().NotBe(sid1);
+                    
+                    VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Connected);
                 }
-
-                VerifyObserverMessages(observer, ConnectionState.Disconnected, ConnectionState.Connected, ConnectionState.Disconnected, ConnectionState.Connected);
             }
         }
 
