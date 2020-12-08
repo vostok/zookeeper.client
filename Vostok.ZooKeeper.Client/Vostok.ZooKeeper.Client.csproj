@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" PrivateAssets="all" />
+    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
