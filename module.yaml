@@ -19,8 +19,8 @@ notests *default:
 
 full-build > notests:
   deps:
-    - vostok.zookeeper.testing
-    - vostok.commons.testing@UpgradedZooKeeperNetExClient
+    - vostok.zookeeper.testing@UpgradedZooKeeperNetExClient
+    - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble
 
