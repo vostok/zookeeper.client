@@ -44,5 +44,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.zookeeper.testing\Vostok.ZooKeeper.Testing\bin\Release\netstandard2.0\Vostok.ZooKeeper.Testing.dll</HintPath>
     </Reference>
+    <Reference Include="Vostok.Tracing.Abstractions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.tracing.abstractions\Vostok.Tracing.Abstractions\bin\Release\netstandard2.0\Vostok.Tracing.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Tracing">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.tracing\Vostok.Tracing\bin\Release\netstandard2.0\Vostok.Tracing.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
