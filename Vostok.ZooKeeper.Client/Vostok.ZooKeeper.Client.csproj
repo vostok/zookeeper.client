@@ -37,7 +37,6 @@
     <Compile Include="..\..\vostok.commons.threading\Vostok.Commons.Threading\AtomicBoolean.cs" Link="Commons\AtomicBoolean.cs" />
     <Compile Include="..\..\vostok.commons.time\Vostok.Commons.Time\TimeSpanFormatting.cs" Link="Commons\TimeSpanFormatting.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="Vostok.ZooKeeper.Client.Abstractions">
       <SpecificVersion>False</SpecificVersion>
@@ -47,12 +46,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.logging.abstractions\Vostok.Logging.Abstractions\bin\Release\netstandard2.0\Vostok.Logging.Abstractions.dll</HintPath>
     </Reference>
+    <Reference Include="ZooKeeperNetEx, Version=3.4.12.4, Culture=neutral, PublicKeyToken=42cd15de36f9b993">
+      <HintPath>Resources\ZooKeeperNetEx.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Tracing.Extensions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.tracing.extensions\Vostok.Tracing.Extensions\bin\Release\netstandard2.0\Vostok.Tracing.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Tracing.Abstractions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.tracing.abstractions\Vostok.Tracing.Abstractions\bin\Release\netstandard2.0\Vostok.Tracing.Abstractions.dll</HintPath>
+    </Reference>
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.1" PrivateAssets="all" />
-  </ItemGroup>
-
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <PropertyGroup>
       <ILRepackExecutable>dotnet "$(MSBuildThisFileDirectory)../../vostok.devtools.ilrepack.bin/netcoreapp2.1/ILRepack.Core.dll"</ILRepackExecutable>
@@ -63,7 +68,7 @@
       <MergeAssemblies Include="$(BinPath)ZooKeeperNetEx.dll" />
       <MergeAssemblies Include="$(BinPath)System*.dll" />
     </ItemGroup>
-    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies-&gt;'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
     <Delete Files="@(MergeAssemblies)" />
   </Target>
 </Project>

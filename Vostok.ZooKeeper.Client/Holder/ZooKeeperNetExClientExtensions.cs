@@ -7,6 +7,18 @@ namespace Vostok.ZooKeeper.Client.Holder
 {
     internal static class ZooKeeperNetExClientExtensions
     {
+        public static string GetReplica(this ZooKeeperNetExClient client)
+        {
+            try
+            {
+                return client?.getCurrentEndpoint();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public static long GetSessionId(this ZooKeeperNetExClient client)
         {
             try
