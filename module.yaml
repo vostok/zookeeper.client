@@ -22,7 +22,7 @@ notests *default:
 full-build > notests:
   deps:
     - vostok.tracing
-    - vostok.zookeeper.testing@UpgradedZooKeeperNetExClient
+    - vostok.zookeeper.testing
     - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble

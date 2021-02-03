@@ -79,10 +79,10 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         protected static Task KillSession(ClientHolder holder, string connectionString) =>
-            ZooKeeperClientTestsHelper.KillSession(holder.SessionId, holder.SessionPassword, holder.OnConnectionStateChanged, connectionString, DefaultTimeout.Add(DefaultTimeout));
+            ZooKeeperClientTestsHelper.KillSession(holder.SessionId, holder.SessionPassword, holder.OnConnectionStateChanged, connectionString, DefaultTimeout);
 
         protected static Task KillSession(ZooKeeperClient client, string connectionString) =>
-            ZooKeeperClientTestsHelper.KillSession(client.SessionId, client.SessionPassword, client.OnConnectionStateChanged, connectionString, DefaultTimeout.Add(DefaultTimeout));
+            ZooKeeperClientTestsHelper.KillSession(client.SessionId, client.SessionPassword, client.OnConnectionStateChanged, connectionString, DefaultTimeout);
 
         protected ZooKeeperClient GetClient(TimeSpan? timeout = null)
         {
