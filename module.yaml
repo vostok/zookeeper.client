@@ -10,6 +10,8 @@ notests *default:
     - module vostok.zookeeper.client.abstractions
 
   deps:
+    - vostok.tracing.extensions
+    - vostok.tracing.abstractions
     - vostok.commons.time/src
     - vostok.commons.helpers/src
     - vostok.commons.threading/src
@@ -19,6 +21,7 @@ notests *default:
 
 full-build > notests:
   deps:
+    - vostok.tracing
     - vostok.zookeeper.testing@UpgradedZooKeeperNetExClient
     - vostok.commons.testing/src
     - vostok.logging.console

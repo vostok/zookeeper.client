@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Vostok.Commons.Collections;
 using Vostok.Commons.Time;
 using Vostok.Logging.Abstractions;
+using Vostok.Tracing.Abstractions;
 
 namespace Vostok.ZooKeeper.Client
 {
@@ -82,6 +83,21 @@ namespace Vostok.ZooKeeper.Client
         /// <para>Maximum <see cref="Timeout"/> multiplier for delays between attempts of connecting to ZooKeeper cluster.</para>
         /// </summary>
         public int MaximumConnectPeriodMultiplier { get; set; } = 10;
+
+        /// <summary>
+        /// Tracer used for sending spans.
+        /// </summary>
+        public ITracer Tracer { get; set; }
+
+        /// <summary>
+        /// ZooKeeper environment name.
+        /// </summary>
+        public string TargetEnvironment { get; set; } = "default";
+
+        /// <summary>
+        /// ZooKeeper service name.
+        /// </summary>
+        public string TargetService { get; set; } = "ZooKeeper";
 
         private static string BuildConnectionString(IList<Uri> uris)
             => uris == null ? null : string.Join(",", uris.Select(u => $"{u.Host}:{u.Port}"));
