@@ -364,7 +364,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.Ephemeral)]
-        public void Should_not_be_triggered_on_client_session_expire(CreateMode createMode)
+        public async Task Should_not_be_triggered_on_client_session_expire(CreateMode createMode)
         {
             var path = "/watch/new";
             var watcher = new TestWatcher();
@@ -372,7 +372,7 @@ namespace Vostok.ZooKeeper.Client.Tests
             localClient.Create(new CreateRequest(path, createMode)).EnsureSuccess();
             localClient.Exists(new ExistsRequest(path) {Watcher = watcher});
 
-            KillSession(localClient, Ensemble.ConnectionString).GetAwaiter().GetResult();
+            await KillSession(localClient, Ensemble.ConnectionString);
 
             var result = localClient.Delete(new DeleteRequest(path));
             result.Status.Should().Be(createMode.IsEphemeral() ? ZooKeeperStatus.NodeNotFound : ZooKeeperStatus.Ok);

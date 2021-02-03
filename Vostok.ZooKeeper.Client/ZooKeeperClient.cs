@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using org.apache.zookeeper;
 using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
+using Vostok.Tracing.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
@@ -24,6 +25,7 @@ namespace Vostok.ZooKeeper.Client
     public class ZooKeeperClient : IZooKeeperClient, IZooKeeperAuthClient, IDisposable
     {
         private readonly ILog log;
+        private readonly ITracer tracer;
         private readonly ZooKeeperClientSettings settings;
         private readonly ClientHolder clientHolder;
         private readonly WatcherWrapper watcherWrapper;
@@ -38,6 +40,7 @@ namespace Vostok.ZooKeeper.Client
             this.log = log = (log ?? LogProvider.Get())
                 .ForContext<ZooKeeperClient>()
                 .WithMinimumLevel(settings.LoggingLevel);
+            tracer = settings.Tracer ?? TracerProvider.Get();
 
             clientHolder = new ClientHolder(settings, log);
             watcherWrapper = new WatcherWrapper(settings.WatchersCacheCapacity, log);
@@ -181,9 +184,15 @@ namespace Vostok.ZooKeeper.Client
             where TResult : ZooKeeperResult
         {
             TResult result;
+
+            var span = tracer.CreateSpan(operation);
+            span.SetTargetDetails(settings.TargetService, settings.TargetEnvironment);
+            span.SetRequestDetails(operation.Request);
+
             try
             {
                 var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
+                span.SetReplica(client?.GetReplica() ?? "not-connected");
 
                 if (client == null)
                     result = operation.CreateUnsuccessfulResult(
@@ -206,6 +215,7 @@ namespace Vostok.ZooKeeper.Client
             }
 
             LogResult(operation.Request, result);
+            span.SetResponseDetails(result);
 
             return result;
         }
