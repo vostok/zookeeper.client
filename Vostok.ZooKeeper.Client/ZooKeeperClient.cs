@@ -192,7 +192,7 @@ namespace Vostok.ZooKeeper.Client
             try
             {
                 var client = await clientHolder.GetConnectedClient().ConfigureAwait(false);
-                span.SetReplica(client.GetReplica() ?? "not-connected");
+                span.SetReplica(client?.GetReplica() ?? "not-connected");
 
                 if (client == null)
                     result = operation.CreateUnsuccessfulResult(
