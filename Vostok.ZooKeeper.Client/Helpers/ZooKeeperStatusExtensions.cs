@@ -7,6 +7,7 @@ namespace Vostok.ZooKeeper.Client.Helpers
         public static bool IsMundaneError(this ZooKeeperStatus status)
             => status == ZooKeeperStatus.NodeAlreadyExists ||
                status == ZooKeeperStatus.NodeNotFound ||
-               status == ZooKeeperStatus.NodeHasChildren;
+               status == ZooKeeperStatus.NodeHasChildren ||
+               status == ZooKeeperStatus.VersionsMismatch;
     }
 }
