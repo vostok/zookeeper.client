@@ -10,7 +10,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <PropertyGroup>
-    <VersionPrefix>0.1.9</VersionPrefix>
+    <VersionPrefix>0.1.10</VersionPrefix>
   </PropertyGroup>
   <PropertyGroup>
     <Title>Vostok.ZooKeeper.Client</Title>
@@ -64,7 +64,7 @@
       <MergeAssemblies Include="$(BinPath)ZooKeeperNetEx.dll" />
       <MergeAssemblies Include="$(BinPath)System*.dll" />
     </ItemGroup>
-    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies-&gt;'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:$(ResultAssembly) $(ResultAssembly) @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
     <Delete Files="@(MergeAssemblies)" />
   </Target>
 </Project>
