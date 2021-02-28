@@ -1,7 +1,12 @@
+## 0.1.10 (28-02-2021):
+
+Classify `VersionsMismatch` status as warning.
+
 ## 0.1.9 (18-02-2021):
 
-Temporary fix for .NET Core and .NET5 bug with ConnectionResetException.
-Added tracing.
+- Temporary fix for .NET Core and .NET5 bug with ConnectionResetException.
+
+- Added tracing.
 
 ## 0.1.8 (05-11-2020):
 
