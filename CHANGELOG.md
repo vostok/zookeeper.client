@@ -1,3 +1,8 @@
+## 0.1.9 (18-02-2021):
+
+Temporary fix for .NET Core and .NET5 bug with ConnectionResetException.
+Added tracing.
+
 ## 0.1.8 (05-11-2020):
 
 Return rename internalize option for ilrepack.
