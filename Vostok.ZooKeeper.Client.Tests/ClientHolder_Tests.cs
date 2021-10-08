@@ -55,22 +55,6 @@ namespace Vostok.ZooKeeper.Client.Tests
         
         [Test]
         [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
-        public void GetConnectedClient_should_disconnect_on_empty_connection_string_by_itself()
-        {
-            var connectionString = Ensemble.ConnectionString;
-            
-            var holder = GetClientHolder(() => connectionString);
-
-            WaitForNewConnectedClient(holder);
-
-            Log.Info("Set empty");
-            connectionString = "";
-
-            WaitForState(holder, ConnectionState.Disconnected, 15.Seconds());
-        }
-        
-        [Test]
-        [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
         public void GetConnectedClient_should_disconnect_on_empty_connection_string_on_demand()
         {
             var connectionString = Ensemble.ConnectionString;
