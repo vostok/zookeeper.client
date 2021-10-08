@@ -66,6 +66,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 if (currentState.IsConnected)
                     return currentState.Client;
 
+                // note (kungurtsev, 08.10.2021): there is no reason to wait suspended client to reconnect
                 if (currentState.IsSuspended)
                     return null;
                 
@@ -148,7 +149,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             {
                 newState.Client?.Touch();
 
-                // Note(kungurtsev): increase delay for each active (not suspended) client creation.
+                // note (kungurtsev, 22.06.2020): increase delay for each active (not suspended) client creation
                 if (!currentState.IsSuspended)
                     suspendedManager.IncreaseDelay();
 
@@ -236,7 +237,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private void SendOnConnectionStateChanged(bool complete = false)
         {
-            // Note(kungurtsev): double reset can shuffle currentState, so we use state.
+            // note (kungurtsev, 12.03.2019): double reset can shuffle currentState, so we use state
 
             lock (OnConnectionStateChanged)
             {
