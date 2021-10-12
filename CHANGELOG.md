@@ -1,3 +1,7 @@
+## 0.1.11 (12-10-2021):
+
+Suspend client on empty connection string.
+
 ## 0.1.10 (28-02-2021):
 
 Classify `VersionsMismatch` status as warning.
