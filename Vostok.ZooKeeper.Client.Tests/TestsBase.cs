@@ -8,6 +8,8 @@ using Vostok.Commons.Testing;
 using Vostok.Commons.Testing.Observable;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
+using Vostok.Logging.File;
+using Vostok.Logging.File.Configuration;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Holder;
 using Vostok.ZooKeeper.Client.Helpers;
@@ -18,7 +20,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 {
     internal abstract class TestsBase
     {
-        protected static readonly ILog Log = new SynchronousConsoleLog();
+        protected static readonly ILog Log = new CompositeLog(new SynchronousConsoleLog(), new FileLog(new FileLogSettings {FileOpenMode = FileOpenMode.Rewrite}));
         protected static TimeSpan DefaultTimeout = 10.Seconds();
 
         protected ZooKeeperEnsemble Ensemble;
@@ -54,16 +56,17 @@ namespace Vostok.ZooKeeper.Client.Tests
             assertion.ShouldPassIn(5.Seconds());
         }
 
-        protected static void WaitForDisconnectedState(ClientHolder holder)
-        {
-            Action assertion = () => { holder.ConnectionState.Should().Be(ConnectionState.Disconnected); };
-            assertion.ShouldPassIn(5.Seconds());
-        }
+        protected static void WaitForDisconnectedState(ClientHolder holder) =>
+            WaitForState(holder, ConnectionState.Disconnected);
 
-        protected static void WaitForDiedState(ClientHolder holder)
+        protected static void WaitForDiedState(ClientHolder holder) =>
+            WaitForState(holder, ConnectionState.Died);
+        
+        protected static void WaitForState(ClientHolder holder, ConnectionState state, TimeSpan? timeout = null)
         {
-            Action assertion = () => { holder.ConnectionState.Should().Be(ConnectionState.Died); };
-            assertion.ShouldPassIn(5.Seconds());
+            timeout = timeout ?? 5.Seconds();
+            Action assertion = () => { holder.ConnectionState.Should().Be(state); };
+            assertion.ShouldPassIn(timeout.Value);
         }
 
         protected static void VerifyObserverMessages(TestObserver<ConnectionState> observer, params ConnectionState[] states)
@@ -94,7 +97,10 @@ namespace Vostok.ZooKeeper.Client.Tests
             return new ZooKeeperClient(settings, Log);
         }
 
-        protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null)
+        protected ClientHolder GetClientHolder(string connectionString, TimeSpan? timeout = null) =>
+            GetClientHolder(() => connectionString, timeout);
+        
+        protected ClientHolder GetClientHolder(Func<string> connectionString, TimeSpan? timeout = null)
         {
             var settings = new ZooKeeperClientSettings(connectionString) {Timeout = timeout ?? DefaultTimeout, LoggingLevel = LogLevel.Debug};
             return new ClientHolder(settings, Log);
