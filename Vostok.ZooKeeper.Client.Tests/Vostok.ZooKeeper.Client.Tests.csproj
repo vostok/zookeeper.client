@@ -52,5 +52,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.tracing\Vostok.Tracing\bin\Release\netstandard2.0\Vostok.Tracing.dll</HintPath>
     </Reference>
+    <Reference Include="Vostok.Logging.File">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.logging.file\Vostok.Logging.File\bin\Release\netstandard2.0\Vostok.Logging.File.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

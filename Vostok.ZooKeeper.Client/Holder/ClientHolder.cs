@@ -33,7 +33,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             this.log = log;
             this.settings = settings;
 
-            state = ClientHolderState.CreateActive(null, null, ConnectionState.Disconnected, null, settings);
+            state = ClientHolderState.CreateSuspended(TimeBudget.Expired);
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), -3);
             authenticationInfos = new HashSet<AuthenticationInfo>(AuthenticationInfoComparer.Instance);
 
@@ -66,6 +66,10 @@ namespace Vostok.ZooKeeper.Client.Holder
                 if (currentState.IsConnected)
                     return currentState.Client;
 
+                // note (kungurtsev, 08.10.2021): there is no reason to wait suspended client to reconnect
+                if (currentState.IsSuspended)
+                    return null;
+                
                 if (!await currentState.NextState.Task.WaitAsync(budget.Remaining).ConfigureAwait(false))
                     return null;
             }
@@ -139,11 +143,30 @@ namespace Vostok.ZooKeeper.Client.Holder
         {
             log.Info("Resetting client. Current state: '{CurrentState}'.", currentState);
 
+            var newState = CreateNewClient(currentState);
+
+            if (ChangeState(currentState, newState))
+            {
+                newState.Client?.Touch();
+
+                // note (kungurtsev, 22.06.2020): increase delay for each active (not suspended) client creation
+                if (!currentState.IsSuspended)
+                    suspendedManager.IncreaseDelay();
+
+                currentState.Dispose();
+            }
+
+            return true;
+        }
+
+        private ClientHolderState CreateNewClient(ClientHolderState currentState)
+        {
             var newConnectionString = settings.ConnectionStringProvider();
+
             if (string.IsNullOrEmpty(newConnectionString))
             {
                 log.Error("Failed to resolve any ZooKeeper replicas.");
-                return false;
+                return ClientHolderState.CreateSuspended(TimeBudget.StartNew(settings.Timeout));
             }
 
             var newConnectionWatcher = new ConnectionWatcher(ProcessEvent);
@@ -174,18 +197,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 ? ClientHolderState.CreateSuspended(suspendedFor)
                 : ClientHolderState.CreateActive(newClient, newConnectionWatcher, ConnectionState.Disconnected, newConnectionString, settings);
 
-            if (ChangeState(currentState, newState))
-            {
-                newState.Client?.Touch();
-
-                // Note(kungurtsev): increase delay for each active (not suspended) client creation.
-                if (!currentState.IsSuspended)
-                    suspendedManager.IncreaseDelay();
-
-                currentState.Dispose();
-            }
-
-            return true;
+            return newState;
         }
 
         private bool ChangeState([NotNull] ClientHolderState currentState, [NotNull] ClientHolderState newState)
@@ -225,7 +237,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         private void SendOnConnectionStateChanged(bool complete = false)
         {
-            // Note(kungurtsev): double reset can shuffle currentState, so we use state.
+            // note (kungurtsev, 12.03.2019): double reset can shuffle currentState, so we use state
 
             lock (OnConnectionStateChanged)
             {

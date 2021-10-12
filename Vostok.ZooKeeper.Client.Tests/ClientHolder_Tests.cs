@@ -7,6 +7,7 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
+using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Authentication;
 using Vostok.ZooKeeper.Client.Holder;
@@ -44,12 +45,44 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void GetConnectedClient_should_be_null_with_empty_connection_string()
         {
-            var holder = GetClientHolder(null, 1.Seconds());
+            var holder = GetClientHolder((string)null);
 
-            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds());
+            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds()).Should().BeNull();
 
             holder.ConnectionState.Should().Be(ConnectionState.Disconnected);
             holder.SessionId.Should().Be(0);
+        }
+        
+        [Test]
+        [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
+        public void GetConnectedClient_should_disconnect_on_empty_connection_string_on_demand()
+        {
+            var connectionString = Ensemble.ConnectionString;
+            
+            var holder = GetClientHolder(() => connectionString);
+
+            WaitForNewConnectedClient(holder);
+
+            Log.Info("Set empty");
+            connectionString = "";
+
+            holder.GetConnectedClientObject().ShouldCompleteIn(DefaultTimeout).Should().Be(null);
+        }
+        
+        [Test]
+        [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
+        public void GetConnectedClient_should_reconnect_after_empty_connection_string_by_itself()
+        {
+            string connectionString = null;
+            
+            var holder = GetClientHolder(() => connectionString);
+
+            holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds()).Should().BeNull();
+
+            Log.Info("Set not empty");
+            connectionString = Ensemble.ConnectionString;
+
+            WaitForState(holder, ConnectionState.Connected, 15.Seconds());
         }
 
         [Test]
@@ -304,7 +337,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [Test]
         public void Dispose_should_be_tolerant_to_null_client()
         {
-            var holder = GetClientHolder(null, 1.Seconds());
+            var holder = GetClientHolder((string)null, 1.Seconds());
             holder.GetConnectedClientObject().ShouldCompleteIn(1.5.Seconds());
             holder.Dispose();
         }
