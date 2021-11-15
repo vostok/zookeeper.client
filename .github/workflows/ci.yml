@@ -29,7 +29,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         references: [cement, nuget]
-        framework: [netcoreapp2.1, net471]
+        framework: [netcoreapp3.1, net471]
         exclude: 
           - os: ubuntu-latest
             framework: net471
