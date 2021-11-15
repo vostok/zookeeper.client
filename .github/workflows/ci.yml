@@ -40,7 +40,7 @@ jobs:
       - name: Setup Java JDK
         uses: actions/setup-java@v2.3.0
         with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
+          distribution: 'temurin'
           java-version: '11'
 
       - name: Test
