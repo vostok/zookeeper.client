@@ -7,10 +7,35 @@ jobs:
     uses: vostok/github.ci/.github/workflows/build.yml@master
 
   test:
-    needs: build
-    uses: vostok/github.ci/.github/workflows/test.yml@master
-    with:
-      frameworks: '["net6.0", "netcoreapp3.1", "net471"]'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        references: [cement, nuget]
+        framework: ["net6.0", "netcoreapp3.1", "net471"]
+        exclude:
+          - os: ubuntu-latest
+            framework: net471        
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}   
+
+    steps:          
+      - name: Install .NET 6.0
+        uses: actions/setup-dotnet@main
+        with:
+          dotnet-version: '6.0.x'
+         
+      - name: Install .NET Core 3.1
+        uses: actions/setup-dotnet@main
+        with:
+          dotnet-version: '3.1.x'
+        if: ${{ contains(fromJSON(inputs.frameworks), 'netcoreapp3.1') }}          
+  
+      - name: Test
+        uses: vostok/github.ci@master
+        with:
+          references: ${{ matrix.references }}
+          framework: ${{ matrix.framework }}
 
   publish:
     needs: test
