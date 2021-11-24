@@ -9,6 +9,8 @@ jobs:
   test:
     needs: build
     uses: vostok/github.ci/.github/workflows/test.yml@master
+    with:
+      frameworks: '["net6.0", "netcoreapp3.1", "net471"]'
 
   publish:
     needs: test
