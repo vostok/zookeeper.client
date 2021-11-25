@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -248,9 +249,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
         public async Task OnConnectionStateChanged_should_observe_expired()
         {
+            // NOTE (tsup, 25-11-2021): Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             var holder = GetClientHolder(Ensemble.ConnectionString);
             var observer = GetObserver(holder);
 
