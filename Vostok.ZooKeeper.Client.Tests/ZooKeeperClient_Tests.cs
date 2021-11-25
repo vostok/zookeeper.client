@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
@@ -93,9 +94,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
         [TestCase(CreateMode.EphemeralSequential)]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
         public async Task Create_should_create_node_in_different_modes(CreateMode createMode)
         {
+            // NOTE (tsup, 25-11-2021): Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             var path = $"/create_node_{createMode}";
 
             var createResult = await client.CreateAsync(path, createMode);
@@ -581,9 +585,12 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
         public async Task Should_works_with_multiple_clients()
         {
+            // NOTE (tsup, 25-11-2021): Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             var clients = Enumerable.Range(0, 3).Select(_ => GetClient()).ToList();
 
             var path = "/multiple_clients";
