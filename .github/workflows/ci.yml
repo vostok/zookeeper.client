@@ -17,8 +17,7 @@ jobs:
         exclude:
           - os: ubuntu-latest
             framework: net471        
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}   
+    runs-on: ${{ matrix.os }} 
 
     steps:          
       - name: Install .NET 6.0
