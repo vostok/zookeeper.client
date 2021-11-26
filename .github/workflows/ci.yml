@@ -8,33 +8,9 @@ jobs:
 
   test:
     needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-        references: [cement, nuget]
-        framework: [net6.0, netcoreapp3.1, net471]
-        exclude:
-          - os: ubuntu-latest
-            framework: net471        
-    runs-on: ${{ matrix.os }} 
-
-    steps:          
-      - name: Install .NET 6.0
-        uses: actions/setup-dotnet@main
-        with:
-          dotnet-version: '6.0.x'
-         
-      - name: Install .NET Core 3.1
-        uses: actions/setup-dotnet@main
-        with:
-          dotnet-version: '3.1.x'
-  
-      - name: Test
-        uses: vostok/github.ci@master
-        with:
-          references: ${{ matrix.references }}
-          framework: ${{ matrix.framework }}
+    uses: vostok/github.ci/.github/workflows/test.yml@master
+    with:
+      frameworks: '["net6.0", "netcoreapp3.1", "net471"]'
 
   publish:
     needs: test
