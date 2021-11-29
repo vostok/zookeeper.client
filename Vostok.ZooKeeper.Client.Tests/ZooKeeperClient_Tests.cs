@@ -93,7 +93,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
         [TestCase(CreateMode.EphemeralSequential)]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task Create_should_create_node_in_different_modes(CreateMode createMode)
         {
             var path = $"/create_node_{createMode}";
@@ -581,7 +581,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task Should_works_with_multiple_clients()
         {
             var clients = Enumerable.Range(0, 3).Select(_ => GetClient()).ToList();

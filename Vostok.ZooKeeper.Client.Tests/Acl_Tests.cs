@@ -147,7 +147,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task Should_reconnect_to_new_ensemble_with_provided_auth_info()
         {
             using(var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))

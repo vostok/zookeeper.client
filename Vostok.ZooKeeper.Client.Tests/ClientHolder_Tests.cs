@@ -164,7 +164,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task GetConnectedClient_should_return_new_after_expired()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
@@ -249,7 +249,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task OnConnectionStateChanged_should_observe_expired()
         {
             var holder = GetClientHolder(Ensemble.ConnectionString);
