@@ -30,6 +30,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        [Platform("Win", Reason = IgnoreReason)]
         public void GetConnectedClient_should_be_null_after_timeout()
         {
             Ensemble.Stop();
@@ -103,6 +104,7 @@ namespace Vostok.ZooKeeper.Client.Tests
         }
 
         [Test]
+        [Platform("Win", Reason = IgnoreReason)]
         public void GetConnectedClient_should_reconnect_to_new_ensemble_after_timeout()
         {
             using (var ensemble1 = ZooKeeperEnsemble.DeployNew(10, 1, Log))
