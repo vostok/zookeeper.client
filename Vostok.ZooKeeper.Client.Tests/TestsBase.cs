@@ -20,6 +20,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 {
     internal abstract class TestsBase
     {
+        protected const string IgnoreReason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45";
         protected static readonly ILog Log = new CompositeLog(new SynchronousConsoleLog(), new FileLog(new FileLogSettings {FileOpenMode = FileOpenMode.Rewrite}));
         protected static TimeSpan DefaultTimeout = 10.Seconds();
 

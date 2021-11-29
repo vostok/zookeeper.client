@@ -345,7 +345,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.Ephemeral)]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public void Should_not_be_triggered_on_client_disconnect(CreateMode createMode)
         {
             var path = "/watch/new";
@@ -365,7 +365,7 @@ namespace Vostok.ZooKeeper.Client.Tests
 
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.Ephemeral)]
-        [Platform("Win", Reason = "Doesn't work on Unix systems because https://github.com/shayhatsor/zookeeper/issues/45")]
+        [Platform("Win", Reason = IgnoreReason)]
         public async Task Should_not_be_triggered_on_client_session_expire(CreateMode createMode)
         {
             var path = "/watch/new";
