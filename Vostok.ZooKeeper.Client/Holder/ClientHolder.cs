@@ -70,7 +70,7 @@ namespace Vostok.ZooKeeper.Client.Holder
                 if (currentState.IsSuspended)
                     return null;
                 
-                if (!await currentState.NextState.Task.WaitAsync(budget.Remaining).ConfigureAwait(false))
+                if (!await currentState.NextState.Task.TryWaitAsync(budget.Remaining).ConfigureAwait(false))
                     return null;
             }
 
