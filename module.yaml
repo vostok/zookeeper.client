@@ -20,6 +20,8 @@ notests *default:
 
 full-build > notests:
   deps:
+    - -vostok.devtools
+    - vostok.devtools@with-net6.0
     - vostok.logging.file
     - vostok.tracing
     - vostok.zookeeper.testing
