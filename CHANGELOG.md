@@ -1,3 +1,7 @@
+## 0.1.12 (06-12-2021):
+
+Added `net6.0` target.
+
 ## 0.1.11 (12-10-2021):
 
 Suspend client on empty connection string.
