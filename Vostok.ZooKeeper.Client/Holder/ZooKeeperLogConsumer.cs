@@ -17,20 +17,22 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            var escapedMessage = MessageTemplateEscaper.Escape(message);
+            if (message.Contains('{') || message.Contains('}'))
+                message = MessageTemplateEscaper.Escape(message);
+
             switch (severity)
             {
                 case TraceLevel.Error:
-                    log.Error(exception, escapedMessage);
+                    log.Error(exception, message);
                     break;
                 case TraceLevel.Info:
-                    log.Info(exception, escapedMessage);
+                    log.Info(exception, message);
                     break;
                 case TraceLevel.Verbose:
-                    log.Debug(exception, escapedMessage);
+                    log.Debug(exception, message);
                     break;
                 case TraceLevel.Warning:
-                    log.Warn(exception, escapedMessage);
+                    log.Warn(exception, message);
                     break;
             }
         }
