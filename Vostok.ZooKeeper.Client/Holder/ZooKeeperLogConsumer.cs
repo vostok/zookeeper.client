@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using org.apache.utils;
+using Vostok.Commons.Formatting;
 using Vostok.Logging.Abstractions;
-using Vostok.ZooKeeper.Client.Helpers;
 
 namespace Vostok.ZooKeeper.Client.Holder
 {
@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            var escapedMessage = VostokMessageTemplateEscaper.Escape(message);
+            var escapedMessage = MessageTemplateEscaper.Escape(message);
             switch (severity)
             {
                 case TraceLevel.Error:
