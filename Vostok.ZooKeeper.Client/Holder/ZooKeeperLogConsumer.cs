@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
         public void Log(TraceLevel severity, string className, string message, Exception exception)
         {
-            if (message.Contains('{') || message.Contains('}'))
+            if (message.Contains("{") || message.Contains("}"))
                 message = MessageTemplateEscaper.Escape(message);
 
             switch (severity)
