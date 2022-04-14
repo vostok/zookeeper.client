@@ -1,3 +1,8 @@
+## 0.1.14 (14-04-2022):
+
+- Implemented escaping of ZooKeeperNetEx client log messages
+- Added `net6.0` target of ZooKeeperNetEx client. 
+
 ## 0.1.13 (06-12-2021):
 
 Added `net6.0` target.
