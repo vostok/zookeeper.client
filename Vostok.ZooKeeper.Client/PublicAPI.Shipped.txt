@@ -1,0 +1,39 @@
+Vostok.ZooKeeper.Client.ZooKeeperClient
+Vostok.ZooKeeper.Client.ZooKeeperClient.AddAuthenticationInfo(Vostok.ZooKeeper.Client.Abstractions.Model.Authentication.AuthenticationInfo authenticationInfo) -> void
+Vostok.ZooKeeper.Client.ZooKeeperClient.ConnectionState.get -> Vostok.ZooKeeper.Client.Abstractions.Model.ConnectionState
+Vostok.ZooKeeper.Client.ZooKeeperClient.CreateAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.CreateRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.CreateResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.DeleteAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.DeleteRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.DeleteResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.Dispose() -> void
+Vostok.ZooKeeper.Client.ZooKeeperClient.ExistsAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.ExistsRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.ExistsResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.GetAclAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.GetAclRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.GetAclResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.GetChildrenAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.GetChildrenRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.GetChildrenResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.GetDataAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.GetDataRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.GetDataResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.OnConnectionStateChanged.get -> System.IObservable<Vostok.ZooKeeper.Client.Abstractions.Model.ConnectionState>
+Vostok.ZooKeeper.Client.ZooKeeperClient.SessionId.get -> long
+Vostok.ZooKeeper.Client.ZooKeeperClient.SessionPassword.get -> byte[]
+Vostok.ZooKeeper.Client.ZooKeeperClient.SessionTimeout.get -> System.TimeSpan
+Vostok.ZooKeeper.Client.ZooKeeperClient.SetAclAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.SetAclRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.SetAclResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.SetDataAsync(Vostok.ZooKeeper.Client.Abstractions.Model.Request.SetDataRequest request) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.SetDataResult>
+Vostok.ZooKeeper.Client.ZooKeeperClient.ZooKeeperClient(Vostok.ZooKeeper.Client.ZooKeeperClientSettings settings, Vostok.Logging.Abstractions.ILog log) -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.CanBeReadOnly.get -> bool
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.CanBeReadOnly.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.ConnectionStringProvider.get -> System.Func<string>
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.LoggingLevel.get -> Vostok.Logging.Abstractions.LogLevel
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.LoggingLevel.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.MaximumConnectPeriodMultiplier.get -> int
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.MaximumConnectPeriodMultiplier.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.TargetEnvironment.get -> string
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.TargetEnvironment.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.TargetService.get -> string
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.TargetService.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.Timeout.get -> System.TimeSpan
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.Timeout.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.Tracer.get -> Vostok.Tracing.Abstractions.ITracer
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.Tracer.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.WatchersCacheCapacity.get -> int
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.WatchersCacheCapacity.set -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.ZooKeeperClientSettings(string connectionString) -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.ZooKeeperClientSettings(System.Collections.Generic.IList<System.Uri> replicas) -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.ZooKeeperClientSettings(System.Func<string> connectionStringProvider) -> void
+Vostok.ZooKeeper.Client.ZooKeeperClientSettings.ZooKeeperClientSettings(System.Func<System.Collections.Generic.IList<System.Uri>> replicasProvider) -> void
