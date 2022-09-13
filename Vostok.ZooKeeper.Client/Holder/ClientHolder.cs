@@ -37,7 +37,7 @@ namespace Vostok.ZooKeeper.Client.Holder
             suspendedManager = new SuspendedManager(settings.Timeout, settings.Timeout.Multiply(settings.MaximumConnectPeriodMultiplier), -3);
             authenticationInfos = new HashSet<AuthenticationInfo>(AuthenticationInfoComparer.Instance);
 
-            ZooKeeperLogInjector.Register(this, this.log);
+            //ZooKeeperLogInjector.Register(this, this.log);
         }
 
         public CachingObservable<ConnectionState> OnConnectionStateChanged { get; } = new CachingObservable<ConnectionState>(ConnectionState.Disconnected);
@@ -98,7 +98,7 @@ namespace Vostok.ZooKeeper.Client.Holder
 
                 oldState.Dispose();
 
-                ZooKeeperLogInjector.Unregister(this);
+                //ZooKeeperLogInjector.Unregister(this);
             }
         }
 

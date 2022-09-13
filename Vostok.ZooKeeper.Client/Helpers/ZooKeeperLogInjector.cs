@@ -10,18 +10,18 @@ namespace Vostok.ZooKeeper.Client.Helpers
     {
         private static volatile ClientHolder owner;
 
-        public static void Register(ClientHolder client, ILog log)
-        {
-            if (Interlocked.CompareExchange(ref owner, client, null) != null)
-                return;
+        //public static void Register(ClientHolder client, ILog log)
+        //{
+        //    if (Interlocked.CompareExchange(ref owner, client, null) != null)
+        //        return;
 
-            InjectLogging(log);
-        }
+        //    InjectLogging(log);
+        //}
 
-        public static void Unregister(ClientHolder client)
-            => Interlocked.CompareExchange(ref owner, null, client);
+        //public static void Unregister(ClientHolder client)
+        //    => Interlocked.CompareExchange(ref owner, null, client);
 
-        private static void InjectLogging(ILog log)
+        public static void InjectLogging(ILog log)
         {
             ZooKeeperNetExClient.CustomLogConsumer = new ZooKeeperLogConsumer(log);
             ZooKeeperNetExClient.LogLevel = TraceLevel.Verbose;
