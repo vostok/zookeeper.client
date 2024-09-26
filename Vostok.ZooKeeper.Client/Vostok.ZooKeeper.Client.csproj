@@ -63,7 +63,7 @@
       <ResultAssembly>$(BinPath)$(AssemblyName).dll</ResultAssembly>
     </PropertyGroup>
     <ItemGroup>
-      <MergeAssemblies Include="$(BinPath)ZooKeeperNetEx.dll" />
+      <MergeAssemblies Include="$(BinPath)Vostok.ZooKeeperNetEx*.dll" />
       <MergeAssemblies Include="$(BinPath)System*.dll" />
     </ItemGroup>
     <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:&quot;$(ResultAssembly)&quot; &quot;$(ResultAssembly)&quot; @(MergeAssemblies->'&quot;%(RelativeDir)%(FileName)%(Extension)&quot;', ' ')" />
