@@ -18,12 +18,10 @@ notests *default:
     - vostok.commons.formatting/src
     - vostok.logging.abstractions
     - vostok.zookeeper.client.abstractions
-    - vostok.devtools
+    - vostok.devtools@net8.0
 
 full-build > notests:
   deps:
-    - -vostok.devtools
-    - vostok.devtools@with-net6.0
     - vostok.logging.file
     - vostok.tracing
     - vostok.zookeeper.testing
