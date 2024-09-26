@@ -10,6 +10,7 @@ notests *default:
     - module vostok.zookeeper.client.abstractions
 
   deps:
+    - vostok.zookeeper.netex.fixed.compiled
     - vostok.tracing.abstractions
     - vostok.commons.time/src
     - vostok.commons.helpers/src
