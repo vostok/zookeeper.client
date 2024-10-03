@@ -45,10 +45,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.logging.abstractions\Vostok.Logging.Abstractions\bin\Release\$(ReferencesFramework)\Vostok.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Resources\$(ReferencesFramework)\ZooKeeperNetEx.dll" />
     <Reference Include="Vostok.Tracing.Abstractions">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.tracing.abstractions\Vostok.Tracing.Abstractions\bin\Release\$(ReferencesFramework)\Vostok.Tracing.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.ZooKeeperNetEx">
+      <HintPath>..\..\vostok.zookeeper.netex.fixed.compiled\src\Vostok.ZooKeeperNetEx\bin\Release\$(ReferencesFramework)\Vostok.ZooKeeperNetEx.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.ZooKeeperNetEx.Recipes">
+      <HintPath>..\..\vostok.zookeeper.netex.fixed.compiled\src\Vostok.ZooKeeperNetEx.Recipes\bin\Release\$(ReferencesFramework)\Vostok.ZooKeeperNetEx.Recipes.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' And '$(TargetFramework)' != ''">
@@ -58,7 +63,7 @@
       <ResultAssembly>$(BinPath)$(AssemblyName).dll</ResultAssembly>
     </PropertyGroup>
     <ItemGroup>
-      <MergeAssemblies Include="$(BinPath)ZooKeeperNetEx.dll" />
+      <MergeAssemblies Include="$(BinPath)Vostok.ZooKeeperNetEx*.dll" />
       <MergeAssemblies Include="$(BinPath)System*.dll" />
     </ItemGroup>
     <Exec WorkingDirectory="$(BinPath)" Command="$(ILRepackExecutable) /internalize /renameInternalized /out:&quot;$(ResultAssembly)&quot; &quot;$(ResultAssembly)&quot; @(MergeAssemblies->'&quot;%(RelativeDir)%(FileName)%(Extension)&quot;', ' ')" />
