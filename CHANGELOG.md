@@ -1,3 +1,7 @@
+## 0.1.15 (16-12-2024): 
+
+Bump NuGet deps versions
+
 ## 0.1.14 (14-04-2022):
 
 - Implemented escaping of ZooKeeperNetEx client log messages
