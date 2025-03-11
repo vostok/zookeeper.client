@@ -8,6 +8,22 @@ notests *default:
   install:
     - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
     - module vostok.zookeeper.client.abstractions
+    - groups:
+      - target-framework: "netstandard2.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
+      - target-framework: "net6.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/net6.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
+      - target-framework: "net8.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/net8.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
 
   deps:
     - vostok.zookeeper.netex.fixed.compiled
@@ -28,6 +44,26 @@ full-build > notests:
     - vostok.commons.testing/src
     - vostok.logging.console
     - vostok.zookeeper.localensemble
+    
+  install:
+    - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
+    - module vostok.zookeeper.client.abstractions
+    - groups:
+      - target-framework: "netstandard2.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/netstandard2.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
+      - target-framework: "net6.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/net6.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
+      - target-framework: "net8.0"
+        libraries:
+          - Vostok.ZooKeeper.Client/bin/Release/net8.0/Vostok.ZooKeeper.Client.dll
+        modules:
+          - name: vostok.zookeeper.client.abstractions
 
   build:
     target: Vostok.ZooKeeper.Client.sln
