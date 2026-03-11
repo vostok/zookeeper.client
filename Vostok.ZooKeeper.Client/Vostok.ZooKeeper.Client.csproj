@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\vostok.devtools\library-common-props\Main-Project.props" />
   <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
@@ -69,7 +69,7 @@
     <Exec 
       WorkingDirectory="$(BinPath)" 
       Command="$(ILRepackExecutable) /internalize /renameInternalized /out:&quot;$(ResultAssembly)&quot; &quot;$(ResultAssembly)&quot; @(MergeAssemblies->'&quot;%(RelativeDir)%(FileName)%(Extension)&quot;', ' ')"
-      EnvironmentVariables="DOTNET_GCHeapHardLimit=20000000" <!--HEX--> />
+      EnvironmentVariables="DOTNET_GCHeapHardLimit=20000000" />
     <Delete Files="@(MergeAssemblies)" />
   </Target>
 </Project>
